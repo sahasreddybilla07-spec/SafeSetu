@@ -1,0 +1,56 @@
+const hyderabadCycloneData = {
+  id: 'cyclone',
+  name: 'Cyclone',
+  location: 'Hyderabad District',
+  center: [17.385, 78.4867],
+  zoom: 11,
+  riskLevel: 'CRITICAL',
+  riskTone: 'critical',
+  populationAtRisk: '18,500',
+  vulnerablePopulation: '4,200',
+  zones: [
+    { id: 'hyderabad-city', label: 'Hyderabad City (Cyclone Impact Zone)', risk: 'Critical Risk', color: '#c63737', positions: [[17.41, 78.44], [17.44, 78.48], [17.4, 78.53], [17.35, 78.51], [17.34, 78.46]] },
+    { id: 'secunderabad', label: 'Secunderabad Approach', risk: 'High Risk', color: '#e07b25', positions: [[17.46, 78.47], [17.49, 78.51], [17.47, 78.55], [17.43, 78.53], [17.44, 78.49]] },
+    { id: 'shamshabad-safe', label: 'Shamshabad Safe Zone', risk: 'Safe Area', color: '#2d8a5a', positions: [[17.24, 78.4], [17.27, 78.44], [17.23, 78.47], [17.19, 78.44], [17.2, 78.4]] },
+  ],
+  places: [
+    { name: 'Hyderabad City Centre', position: [17.385, 78.4867], color: '#c63737' },
+    { name: 'Secunderabad', position: [17.47, 78.5], color: '#e07b25' },
+    { name: 'Shamshabad', position: [17.23, 78.43], color: '#2d8a5a' },
+  ],
+  shelters: [
+    { name: 'Hyderabad Emergency Shelter A', position: [17.45, 78.55], capacity: '20,000 people' },
+    { name: 'Hyderabad Emergency Shelter B', position: [17.53, 78.39], capacity: '15,000 people' },
+    { name: 'Community Relief Centre C', position: [17.33, 78.47], capacity: '12,000 people' },
+  ],
+  route: [[17.385, 78.4867], [17.41, 78.5], [17.43, 78.53], [17.45, 78.55]],
+  riskDrivers: [{ label: 'Wind Speed', level: 'HIGH' }, { label: 'Storm Surge', level: 'HIGH' }, { label: 'Rainfall', level: 'HIGH' }, { label: 'Drainage', level: 'MODERATE' }],
+  vulnerability: [{ label: 'Children', value: '1,540' }, { label: 'Elderly', value: '1,120' }, { label: 'Coastal / low-lying households', value: '1,000' }, { label: 'Persons requiring assistance', value: '540' }],
+  populationPoints: [[17.4, 78.47], [17.42, 78.49], [17.37, 78.45]],
+  vulnerabilityPoints: [[17.39, 78.48], [17.35, 78.47]],
+  action: 'EVACUATION REQUIRED',
+  reason: 'Severe cyclonic conditions with high wind speed and storm surge risk affecting Hyderabad City.',
+  roadStatus: [{ label: 'NH-44', value: 'CONGESTED', tone: 'warning' }, { label: 'OUTER RING ROAD', value: 'AVAILABLE', tone: 'safe' }],
+  relocation: {
+    requiredPopulation: '18,500',
+    vulnerablePopulation: '4,200',
+    selectedHabitation: 'Hyderabad City (Cyclone Impact Zone)',
+    recommendedShelter: 'Hyderabad Emergency Shelter A',
+    additionalDistance: '+5 km',
+    explanation: 'Shelter A has sufficient capacity, sits outside the cyclone impact zone, and remains reachable via NH-44 and the Inner Ring Road within the earliest viable evacuation window.',
+    shelterOptions: [
+      { id: 'plan-a', name: 'Hyderabad Emergency Shelter A', type: 'Government Stadium Relief Centre', capacity: '20,000', available: '20,000', distance: '14 km · 32 min', exposure: 'SAFE', accessibility: 'GOOD', vulnerabilitySupport: 'AVAILABLE', status: 'RECOMMENDED', recommended: true },
+      { id: 'plan-b', name: 'Hyderabad Emergency Shelter B', type: 'Outer Ring Road Relief Centre', capacity: '15,000', available: '15,000', distance: '19 km · 41 min', exposure: 'SAFE', accessibility: 'GOOD', vulnerabilitySupport: 'AVAILABLE', status: 'ALTERNATE OPTION', recommended: false },
+      { id: 'plan-c', name: 'Community Relief Centre C', type: 'Local Community Relief Centre', capacity: '12,000', available: '12,000', distance: '9 km · 27 min', exposure: 'SAFE', accessibility: 'MODERATE', status: 'SECONDARY OPTION', recommended: false },
+    ],
+    capacity: { shelter: 'Hyderabad Emergency Shelter A', required: 18500, total: 20000, remaining: 1500 },
+    routeInfo: { origin: 'Hyderabad City (Affected Zone)', destination: 'Hyderabad Emergency Shelter A', direct: 'HIGH RISK · COASTAL APPROACH', alternate: 'RECOMMENDED · NH-44 → INNER RING ROAD' },
+  },
+  whatIf: {
+    normal: { label: 'Pre-Warning', populationAtRisk: '6,200', riskLevel: 'MODERATE', riskTone: 'warning', redZone: 'Limited', shelterNeed: 'NO', action: 'MONITOR', status: 'WATCH', insight: 'Cyclone tracking off the coast. Continue monitoring wind speed and rainfall trends.', footprint: [[17.4, 78.46], [17.42, 78.48], [17.39, 78.5], [17.36, 78.48], [17.37, 78.46]] },
+    elevated: { label: 'Current', populationAtRisk: '18,500', riskLevel: 'CRITICAL', riskTone: 'critical', redZone: 'City-wide', shelterNeed: 'YES', action: 'EVACUATION REQUIRED', status: 'CRITICAL RISK', insight: 'Severe cyclonic conditions require immediate evacuation of the affected population.', footprint: [[17.41, 78.44], [17.44, 78.48], [17.4, 78.53], [17.35, 78.51], [17.34, 78.46]] },
+    severe: { label: 'Severe', populationAtRisk: '24,000', riskLevel: 'CRITICAL', riskTone: 'critical', redZone: 'Expanded citywide + suburbs', shelterNeed: 'YES', action: 'EVACUATE IMMEDIATELY', status: 'EXTREME RISK', insight: 'Projected landfall intensity exceeds current shelter capacity. Additional relocation capacity is required.', footprint: [[17.43, 78.41], [17.48, 78.47], [17.42, 78.56], [17.32, 78.54], [17.31, 78.43]] },
+  },
+};
+
+export default hyderabadCycloneData;
