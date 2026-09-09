@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import ControlRoom from './pages/ControlRoom';
 import Dashboard from './pages/Dashboard';
+import HazardDemo from './pages/HazardDemo';
 import HazardMap from './pages/HazardMap';
 import Login from './pages/Login';
 import PublicEmergency from './pages/PublicEmergency';
@@ -27,6 +28,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PublicMap />} />
+        <Route path="/hazard-demo" element={<HazardDemo />} />
         <Route path="/login" element={<Login />} />
         <Route path="/emergency" element={<PublicEmergency />} />
         <Route path="/admin" element={<AdminLayout />}>
