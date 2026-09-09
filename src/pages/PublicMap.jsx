@@ -114,7 +114,12 @@ export default function PublicMap() {
               Illustrative demo scenarios using curated data across five regions — not live emergency alerts.
             </p>
           </div>
-          <span className="demo-badge">DEMO SCENARIO • ILLUSTRATIVE DATA</span>
+          <div className="public-map-hero__actions">
+            <button className="public-map-hero__cta" onClick={() => navigate('/hazard-demo')} type="button">
+              VIEW HAZARD SCENARIO
+            </button>
+            <span className="demo-badge">DEMO SCENARIO • ILLUSTRATIVE DATA</span>
+          </div>
         </section>
 
         <section className="public-stats-row" aria-label="National monitoring statistics">
