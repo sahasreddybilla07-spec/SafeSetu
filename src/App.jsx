@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import ControlRoom from './pages/ControlRoom';
+import ControlRoomLocationMap from './pages/ControlRoomLocationMap';
 import Dashboard from './pages/Dashboard';
 import FieldOfficerDashboard from './pages/FieldOfficerDashboard';
 import HazardDemo from './pages/HazardDemo';
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/government" element={<Navigate to="/government/login" replace />} />
         <Route path="/government/login" element={<Login />} />
         <Route path="/government/control-room" element={<ControlRoom />} />
+        <Route path="/government/control-room/map/:locationId" element={<ControlRoomLocationMap />} />
         <Route path="/government/field-officer" element={<FieldOfficerDashboard />} />
         <Route path="/field-officer" element={<FieldOfficerDashboard />} />
         <Route path="/emergency" element={<PublicEmergency />} />

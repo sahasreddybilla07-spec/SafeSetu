@@ -15,7 +15,7 @@ export default function Navbar() {
     return (
       <header className="navbar admin-navbar">
         <Link className="navbar__brand" to="/">
-          <span className="navbar__mark" aria-hidden="true">S</span>
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
           <span>SAFESETU</span>
         </Link>
         <nav aria-label="Admin navigation" className="admin-navbar__links">
@@ -48,7 +48,7 @@ export default function Navbar() {
   return (
     <header className="navbar public-navbar">
       <Link className="navbar__brand" to="/">
-        <span className="navbar__mark" aria-hidden="true">S</span>
+        <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
         <span>SAFESETU</span>
       </Link>
       <nav aria-label="Primary navigation" className="navbar__links">

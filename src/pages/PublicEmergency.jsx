@@ -40,7 +40,11 @@ function NoActivePlan() {
   return (
     <div className="emergency-page">
       <header className="emergency-header">
-        <div className="emergency-header__brand">SAFESETU <span>EMERGENCY ASSISTANCE</span></div>
+        <div className="emergency-header__brand">
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/logo.svg" />
+          <strong>SAFESETU</strong>
+          <span>EMERGENCY ASSISTANCE</span>
+        </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
       </header>
       <main className="emergency-empty">
@@ -86,7 +90,11 @@ export default function PublicEmergency() {
   return (
     <div className="emergency-page">
       <header className="emergency-header">
-        <div className="emergency-header__brand">SAFESETU <span>EMERGENCY ASSISTANCE</span></div>
+        <div className="emergency-header__brand">
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/logo.svg" />
+          <strong>SAFESETU</strong>
+          <span>EMERGENCY ASSISTANCE</span>
+        </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
       </header>
 

@@ -168,6 +168,10 @@ export default function ControlRoom() {
     }
   }
 
+  function handleViewOnMap(locationId) {
+    navigate(`/government/control-room/map/${encodeURIComponent(locationId)}`);
+  }
+
   if (!activeHazard) {
     return null;
   }
@@ -176,7 +180,7 @@ export default function ControlRoom() {
     <div className="control-room-shell">
       <aside className="control-room-sidebar" aria-label="Government controls sidebar">
         <div className="control-room-sidebar__brand">
-          <span className="navbar__mark" aria-hidden="true">S</span>
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
           <div>
             <strong>SAFESETU</strong>
             <small>CONTROL ROOM</small>
@@ -314,7 +318,13 @@ export default function ControlRoom() {
                         <span>Status: ACTIVE FOR EVACUATION</span>
                       </div>
                       <div className="approved-card__actions">
-                        <button className="control-room-secondary-button" type="button">VIEW ON MAP</button>
+                        <button
+                          className="control-room-secondary-button"
+                          onClick={() => handleViewOnMap(primaryApprovedLocation.id)}
+                          type="button"
+                        >
+                          VIEW ON MAP
+                        </button>
                         <button
                           className="approved-card__later"
                           onClick={() => handleDecision(primaryApprovedLocation.id, 'PENDING')}
@@ -360,7 +370,13 @@ export default function ControlRoom() {
                               <span>Status: ACTIVE FOR EVACUATION</span>
                             </div>
                             <div className="approved-card__actions">
-                              <button className="control-room-secondary-button" type="button">VIEW ON MAP</button>
+                              <button
+                                className="control-room-secondary-button"
+                                onClick={() => handleViewOnMap(location.id)}
+                                type="button"
+                              >
+                                VIEW ON MAP
+                              </button>
                               <button
                                 className="approved-card__later"
                                 onClick={() => handleDecision(location.id, 'PENDING')}

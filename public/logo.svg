@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 144" role="img" aria-label="SafeSetu shield and bridge logo">
+  <path d="M64 10 110 22v43c0 27-17 49-46 63C35 114 18 92 18 65V22L64 10Z" fill="#050505"/>
+  <path d="M64 21 99 30v31H29V30l35-9Z" fill="#fff"/>
+  <path d="M28 73h72c-5 17-17 31-36 40-19-9-31-23-36-40Z" fill="#fff"/>
+  <path d="M27 65c16-2 27-11 37-30 10 19 21 28 37 30M25 73h78" fill="none" stroke="#050505" stroke-linecap="round" stroke-width="6"/>
+  <path d="M35 60v12m9-17v17m10-24v24m10-31v31m10 7V48m10 24V55m9 17V60" fill="none" stroke="#050505" stroke-linecap="round" stroke-width="5"/>
+</svg>
