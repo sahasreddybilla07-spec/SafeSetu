@@ -1,6 +1,6 @@
 import { AlertTriangle, Building2, MapPinned, ShieldAlert, TentTree, Waves } from 'lucide-react';
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import IncidentCard from '../components/IncidentCard';
 import LiveTicker from '../components/LiveTicker';
@@ -16,6 +16,8 @@ const placeMarkers = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
   return (
     <div className="dashboard">
       <section className="dashboard__heading">
@@ -23,7 +25,11 @@ export default function Dashboard() {
           <p>District command overview</p>
           <h1>Rampur District</h1>
         </div>
-        <span>Last updated: 14:44 IST · Demo scenario</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className="dashboard-panel__button" onClick={() => navigate(-1)} type="button">BACK</button>
+          <Link className="dashboard-panel__button" to="/">HOME</Link>
+          <span>Last updated: 14:44 IST · Demo scenario</span>
+        </div>
       </section>
 
       <section className="stats-grid" aria-label="District incident statistics">
@@ -75,6 +81,7 @@ export default function Dashboard() {
               <Link to="/admin/map">VIEW HAZARD MAP</Link>
               <Link to="/admin/map#shelters">VIEW SHELTERS</Link>
               <Link to="/admin/control-room">CONTROL ROOM</Link>
+              <Link to="/field-officer">FIELD OFFICER UPDATE</Link>
             </div>
           </section>
         </aside>
