@@ -14,13 +14,14 @@ const startIcon = L.divIcon({
 });
 
 const flowSteps = [
-  'Hazard Detected',
-  'Officer Analyses',
-  'Evacuation Plan Selected',
-  'Plan Sent to Public',
-  'Citizen Receives Alert',
-  'Route to Assigned Shelter',
-  'Safety Confirmed',
+  'Government / Disaster Management Authority',
+  'Registered Safe Locations',
+  'SafeSetu Database',
+  'ML + GIS Analysis',
+  'Which registered locations are suitable for this particular hazard?',
+  'Government Control Room',
+  'Final Approval',
+  'Public Users',
 ];
 
 function EmergencyFlow({ activeIndex }) {
@@ -81,7 +82,7 @@ export default function PublicEmergency() {
     setSafety(record);
   }
 
-  const activeStepIndex = safety ? 6 : 5;
+  const activeStepIndex = safety ? 7 : 6;
 
   return (
     <div className="emergency-page">

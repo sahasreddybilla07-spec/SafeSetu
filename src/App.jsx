@@ -24,6 +24,14 @@ function AdminLayout() {
   );
 }
 
+function GovernmentRouteGuard() {
+  return localStorage.getItem('safesetu-gov-auth') === 'true' ? <ControlRoom /> : <Navigate to="/government/login" replace />;
+}
+
+function FieldOfficerRouteGuard() {
+  return localStorage.getItem('safesetu-field-officer-auth') === 'true' ? <FieldOfficerDashboard /> : <Navigate to="/government/login" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -33,9 +41,9 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/government" element={<Navigate to="/government/login" replace />} />
         <Route path="/government/login" element={<Login />} />
-        <Route path="/government/control-room" element={<ControlRoom />} />
-        <Route path="/government/field-officer" element={<FieldOfficerDashboard />} />
-        <Route path="/field-officer" element={<FieldOfficerDashboard />} />
+        <Route path="/government/control-room" element={<GovernmentRouteGuard />} />
+        <Route path="/government/field-officer" element={<FieldOfficerRouteGuard />} />
+        <Route path="/field-officer" element={<FieldOfficerRouteGuard />} />
         <Route path="/emergency" element={<PublicEmergency />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Dashboard />} />
