@@ -61,7 +61,7 @@ export default function Navbar() {
             {link.label}
           </Link>
         ))}
-        <Link className="navbar__login" to="/login">Government Login</Link>
+        <Link className="navbar__login" to="/login">Login</Link>
       </nav>
     </header>
   );
