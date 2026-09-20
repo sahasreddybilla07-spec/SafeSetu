@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import L from 'leaflet';
 import { Circle, CircleMarker, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   applyLocationDecision,
   getGovernmentAuditTrail,
@@ -47,6 +47,7 @@ function formatApprovalStatus(status) {
 
 export default function ControlRoom() {
   const navigate = useNavigate();
+  const { hazardId: routeHazardId } = useParams();
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedSection, setSelectedSection] = useState('Overview');
   const [reviewItemId, setReviewItemId] = useState(null);
@@ -60,6 +61,22 @@ export default function ControlRoom() {
       navigate('/government/login', { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (!routeHazardId) {
+      return;
+    }
+
+    const data = getHazardDemoData();
+    const hazardExists = data.hazards.some((hazard) => hazard.id === routeHazardId);
+
+    if (!hazardExists || data.activeHazardId === routeHazardId) {
+      return;
+    }
+
+    saveHazardDemoData({ activeHazardId: routeHazardId, hazards: data.hazards });
+    setRefreshKey((value) => value + 1);
+  }, [routeHazardId]);
 
   useEffect(() => {
     const handleStateUpdate = () => {
@@ -200,12 +217,12 @@ export default function ControlRoom() {
           ))}
         </nav>
 
-        <button className="control-room-sidebar__public" onClick={() => navigate('/')} type="button">
-          Back to public platform
+        <button className="control-room-sidebar__public" onClick={() => navigate('/government/control-room')} type="button">
+          All active hazards
         </button>
 
-        <button className="control-room-sidebar__public" onClick={() => navigate(-1)} type="button">
-          Previous page
+        <button className="control-room-sidebar__public" onClick={() => navigate('/')} type="button">
+          Back to public platform
         </button>
 
         <div className="control-room-sidebar__profile">
