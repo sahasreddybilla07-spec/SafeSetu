@@ -7,6 +7,7 @@ import {
   MapPinned,
   Navigation,
   ShieldCheck,
+  Siren,
   Users,
   Waves,
 } from 'lucide-react';
@@ -83,6 +84,17 @@ function getNavigationUrl(destination) {
   return { googleMapsUrl, osmUrl };
 }
 
+function isRouteUnavailable(area) {
+  return ['BLOCKED', 'CLOSED', 'UNSAFE', 'IMPASSABLE'].includes(String(area.roadStatus ?? '').toUpperCase());
+}
+
+function isVeryRiskyRoute(area) {
+  const risk = String(area.riskLevel ?? area.risk ?? '').toUpperCase();
+  const safetyScore = Number(area.safetyScore);
+
+  return isRouteUnavailable(area) || ['HIGH', 'CRITICAL'].includes(risk) || (!Number.isNaN(safetyScore) && safetyScore < 60);
+}
+
 export default function HazardDemo() {
   const approvedRelocationAreas = useMemo(
     () => hazardDemoData.relocationAreas.filter((area) => area.approved),
@@ -92,9 +104,17 @@ export default function HazardDemo() {
   const [selectedAreaId, setSelectedAreaId] = useState(approvedRelocationAreas[0]?.id ?? null);
   const [now, setNow] = useState(Date.now());
   const [deadlineAt, setDeadlineAt] = useState(Date.now());
+  const [emergencyNotified, setEmergencyNotified] = useState(false);
 
   const selectedArea =
     approvedRelocationAreas.find((area) => area.id === selectedAreaId) ?? approvedRelocationAreas[0] ?? null;
+  const viableEscapeRoutes = approvedRelocationAreas.filter((area) => !isRouteUnavailable(area));
+  const hasNoEscapeRoute = viableEscapeRoutes.length === 0;
+  const hasOnlyVeryRiskyRoutes = viableEscapeRoutes.length > 0 && viableEscapeRoutes.every(isVeryRiskyRoute);
+  const emergencyAvailable = hasNoEscapeRoute || hasOnlyVeryRiskyRoutes;
+  const emergencyReason = hasNoEscapeRoute
+    ? 'No approved escape route is currently available.'
+    : 'All available escape routes are currently very high risk.';
 
   function handleNavigation() {
     if (!selectedArea) return;
@@ -125,7 +145,7 @@ export default function HazardDemo() {
       <header className="hazard-demo-header">
         <Link className="hazard-demo-header__brand" to="/">
           <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
-          <span><strong>SAFESETU</strong><small>Hazard scenario</small></span>
+          <span><strong>SAFESETU</strong></span>
         </Link>
         <div className="hazard-demo-header__actions">
           <span className="hazard-demo-header__tag">DEMO SCENARIO • ILLUSTRATIVE DATA</span>
@@ -266,6 +286,26 @@ export default function HazardDemo() {
                   <i className="hazard-demo-map__dot hazard-demo-map__dot--user" />Your Location
                 </span>
               </div>
+
+              <button
+                aria-describedby="emergency-assistance-status"
+                className={`hazard-demo-emergency-action${emergencyNotified ? ' hazard-demo-emergency-action--notified' : ''}`}
+                disabled={!emergencyAvailable || emergencyNotified}
+                onClick={() => setEmergencyNotified(true)}
+                type="button"
+              >
+                <Siren size={20} />
+                <span>
+                  <strong>{emergencyNotified ? 'GOVERNMENT HAS BEEN NOTIFIED' : 'EMERGENCY ASSISTANCE'}</strong>
+                  <small aria-live="polite" id="emergency-assistance-status">
+                    {emergencyNotified
+                      ? 'Help request sent to the Government Control Room.'
+                      : emergencyAvailable
+                        ? emergencyReason
+                        : 'Available when no safe escape route remains.'}
+                  </small>
+                </span>
+              </button>
             </div>
           </div>
 
