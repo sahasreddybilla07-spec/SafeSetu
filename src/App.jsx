@@ -25,6 +25,14 @@ function AdminLayout() {
   );
 }
 
+function GovernmentRouteGuard() {
+  return localStorage.getItem('safesetu-gov-auth') === 'true' ? <ControlRoom /> : <Navigate to="/government/login" replace />;
+}
+
+function FieldOfficerRouteGuard() {
+  return localStorage.getItem('safesetu-field-officer-auth') === 'true' ? <FieldOfficerDashboard /> : <Navigate to="/government/login" replace />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>

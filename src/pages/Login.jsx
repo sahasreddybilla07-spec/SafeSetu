@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ArrowRight, Building2, LockKeyhole, ShieldCheck, UserRoundCog } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -39,17 +39,6 @@ export default function Login() {
   const [officialId, setOfficialId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (localStorage.getItem('safesetu-gov-auth') === 'true') {
-      navigate('/government/control-room', { replace: true });
-      return;
-    }
-
-    if (localStorage.getItem('safesetu-field-officer-auth') === 'true') {
-      navigate('/field-officer', { replace: true });
-    }
-  }, [navigate]);
 
   function handleSubmit(event) {
     event.preventDefault();
