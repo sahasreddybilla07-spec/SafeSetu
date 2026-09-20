@@ -974,6 +974,16 @@ function normalizeArea(area = {}) {
     occupancyPercent: occupancy,
     peoplePresent,
     available: Math.max(0, capacity - peoplePresent),
+    medicalCapacity: area.medicalCapacity ?? Math.max(5, Math.round(capacity * 0.04)),
+    foodCapacity: area.foodCapacity ?? null,
+    waterCapacity: area.waterCapacity ?? null,
+    toilets: area.toilets ?? Math.max(4, Math.round(capacity / 60)),
+    foodStatus: area.foodStatus ?? (occupancy >= 85 ? 'LOW' : occupancy >= 60 ? 'ADEQUATE' : 'SURPLUS'),
+    waterStatus: area.waterStatus ?? (occupancy >= 90 ? 'LOW' : 'ADEQUATE'),
+    emergencyContact: area.emergencyContact ?? '1070 · State Emergency Operations Centre',
+    operationalStatus: area.operationalStatus ?? (area.approvalStatus === 'APPROVED' ? 'ACTIVE' : null),
+    inactiveReason: area.inactiveReason ?? null,
+    inactivatedAt: area.inactivatedAt ?? null,
   };
 }
 
@@ -1150,7 +1160,10 @@ export function saveHazardDemoData(data) {
 
 export function applyFieldOfficerUpdate(locationId, updates) {
   const data = getHazardDemoData();
-  const activeHazard = data.hazards.find((item) => item.id === data.activeHazardId) ?? data.hazards[0];
+  const activeHazard =
+    data.hazards.find((item) => item.relocationAreas.some((area) => area.id === locationId)) ??
+    data.hazards.find((item) => item.id === data.activeHazardId) ??
+    data.hazards[0];
 
   if (!activeHazard) {
     return data;
@@ -1198,7 +1211,10 @@ export function applyFieldOfficerUpdate(locationId, updates) {
 
 export function applyLocationDecision(locationId, decision, actor = 'Control Room Admin') {
   const data = getHazardDemoData();
-  const activeHazard = data.hazards.find((item) => item.id === data.activeHazardId) ?? data.hazards[0];
+  const activeHazard =
+    data.hazards.find((item) => item.relocationAreas.some((area) => area.id === locationId)) ??
+    data.hazards.find((item) => item.id === data.activeHazardId) ??
+    data.hazards[0];
 
   if (!activeHazard) {
     return data;
@@ -1231,6 +1247,9 @@ export function applyLocationDecision(locationId, decision, actor = 'Control Roo
           ? 'Rejected after human review.'
           : null,
     aiRecommendation: decisionValue === 'APPROVED' ? 'GOVERNMENT APPROVED' : decisionValue === 'REJECTED' ? 'REJECTED' : area.aiRecommendation,
+    operationalStatus: decisionValue === 'APPROVED' ? 'ACTIVE' : null,
+    inactiveReason: decisionValue === 'APPROVED' ? null : area.inactiveReason,
+    inactivatedAt: decisionValue === 'APPROVED' ? null : area.inactivatedAt,
   };
 
   activeHazard.relocationAreas = activeHazard.relocationAreas.map((item) => item.id === locationId ? updatedArea : item);
@@ -1246,6 +1265,120 @@ export function applyLocationDecision(locationId, decision, actor = 'Control Roo
   const nextData = {
     activeHazardId: activeHazard.id,
     hazards: data.hazards.map((item) => item.id === activeHazard.id ? activeHazard : item),
+  };
+
+  return saveHazardDemoData(nextData);
+}
+
+export function createRelocationCentre(hazardId, payload = {}, { emergencyActive = false, actor = 'Control Room Admin' } = {}) {
+  const data = getHazardDemoData();
+  const hazard = data.hazards.find((item) => item.id === hazardId);
+
+  if (!hazard) {
+    return data;
+  }
+
+  const approvalStatus = emergencyActive ? 'APPROVED' : 'PENDING';
+  const latitude = Number(payload.latitude ?? hazard.hazardCenter?.[0] ?? 0);
+  const longitude = Number(payload.longitude ?? hazard.hazardCenter?.[1] ?? 0);
+  const capacity = Math.max(0, Number(payload.capacity ?? 0));
+  const nowIso = new Date().toISOString();
+
+  const newArea = normalizeArea({
+    id: `${hazardId}-centre-${Date.now()}`,
+    name: payload.name || 'Unnamed Relocation Centre',
+    hazardId,
+    address: payload.location || 'Location not specified',
+    latitude,
+    longitude,
+    position: [latitude, longitude],
+    capacity,
+    peoplePresent: 0,
+    safetyScore: Number(payload.safetyScore ?? 70),
+    distance: Number(payload.distanceKm ?? 0),
+    distanceKm: Number(payload.distanceKm ?? 0),
+    distanceFromPopulation: payload.distanceKm ? `${payload.distanceKm} km` : 'Unknown',
+    travelTime: payload.travelTime || 'Unknown',
+    riskLevel: payload.riskLevel || 'MODERATE',
+    risk: payload.riskLevel || 'MODERATE',
+    roadStatus: 'OPEN',
+    floodRisk: 'LOW',
+    landslideRisk: 'LOW',
+    traffic: 'MODERATE',
+    aiRecommendation: emergencyActive ? 'EMERGENCY ACTIVATION' : 'PENDING REVIEW',
+    recommendationSummary: emergencyActive
+      ? `Activated directly by ${actor} for immediate emergency response.`
+      : 'Newly allotted centre awaiting government verification.',
+    approvalStatus,
+    approved: emergencyActive,
+    approvedBy: emergencyActive ? actor : null,
+    approvedAt: emergencyActive ? nowIso : null,
+    rejectedAt: null,
+    routeStatus: emergencyActive
+      ? 'Government approved for public release (emergency activation)'
+      : 'Newly allotted — awaiting government review',
+    reviewNote: null,
+    medicalCapacity: Number(payload.medicalCapacity ?? 0),
+    foodCapacity: payload.foodCapacity || null,
+    waterCapacity: payload.waterCapacity || null,
+    toilets: Number(payload.toilets ?? 0),
+    emergencyContact: payload.emergencyContact || '1070 · State Emergency Operations Centre',
+    operationalStatus: emergencyActive ? 'ACTIVE' : null,
+  });
+
+  hazard.relocationAreas = [...hazard.relocationAreas, newArea];
+  hazard.auditTrail = [
+    {
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      text: `${newArea.name} allotted as a new relocation centre`,
+      detail: emergencyActive ? `Activated immediately by ${actor}` : 'Awaiting government approval',
+    },
+    ...hazard.auditTrail,
+  ].slice(0, 6);
+
+  const nextData = {
+    activeHazardId: data.activeHazardId,
+    hazards: data.hazards.map((item) => (item.id === hazard.id ? hazard : item)),
+  };
+
+  return saveHazardDemoData(nextData);
+}
+
+export function deactivateRelocationCentre(locationId, reason, actor = 'Control Room Admin') {
+  const data = getHazardDemoData();
+  const hazard = data.hazards.find((item) => item.relocationAreas.some((area) => area.id === locationId));
+
+  if (!hazard) {
+    return data;
+  }
+
+  const area = hazard.relocationAreas.find((item) => item.id === locationId);
+
+  if (!area) {
+    return data;
+  }
+
+  const updatedArea = {
+    ...area,
+    operationalStatus: 'INACTIVE',
+    inactiveReason: reason,
+    inactivatedAt: new Date().toISOString(),
+    routeStatus: 'Removed from active operations',
+  };
+
+  hazard.relocationAreas = hazard.relocationAreas.map((item) => (item.id === locationId ? updatedArea : item));
+  hazard.auditTrail = [
+    {
+      time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      text: `${area.name} removed from active operations`,
+      detail: `${reason} · by ${actor}`,
+    },
+    ...hazard.auditTrail,
+  ].slice(0, 6);
+
+  const nextData = {
+    activeHazardId: data.activeHazardId,
+    hazards: data.hazards.map((item) => (item.id === hazard.id ? hazard : item)),
   };
 
   return saveHazardDemoData(nextData);

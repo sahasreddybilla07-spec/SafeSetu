@@ -5,6 +5,8 @@ export {
   saveHazardDemoData,
   applyFieldOfficerUpdate,
   applyLocationDecision,
+  createRelocationCentre,
+  deactivateRelocationCentre,
   getHazardDemoSummary,
   getGovernmentAuditTrail,
 } from './governmentDemo';

@@ -3,6 +3,10 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import ControlRoom from './pages/ControlRoom';
 import ControlRoomLocationMap from './pages/ControlRoomLocationMap';
+import ControlRoomOverview from './pages/ControlRoomOverview';
+import LocationCommandCentre from './pages/LocationCommandCentre';
+import OfficerAssignment from './pages/OfficerAssignment';
+import Communication from './pages/Communication';
 import Dashboard from './pages/Dashboard';
 import FieldOfficerDashboard from './pages/FieldOfficerDashboard';
 import HazardDemo from './pages/HazardDemo';
@@ -42,8 +46,11 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/government" element={<Navigate to="/government/login" replace />} />
         <Route path="/government/login" element={<Login />} />
-        <Route path="/government/control-room" element={<ControlRoom />} />
+        <Route path="/government/control-room" element={<ControlRoomOverview />} />
+        <Route path="/government/control-room/hazard/:hazardId" element={<LocationCommandCentre />} />
         <Route path="/government/control-room/map/:locationId" element={<ControlRoomLocationMap />} />
+        <Route path="/government/control-room/officers" element={<OfficerAssignment />} />
+        <Route path="/government/control-room/communication" element={<Communication />} />
         <Route path="/government/field-officer" element={<FieldOfficerDashboard />} />
         <Route path="/field-officer" element={<FieldOfficerDashboard />} />
         <Route path="/emergency" element={<PublicEmergency />} />
