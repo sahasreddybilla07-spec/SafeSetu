@@ -90,14 +90,16 @@ export default function FieldOfficerDashboard() {
   return (
     <div className="field-officer-dashboard">
       <header className="field-officer-dashboard__header">
-        <div>
-          <p className="control-room-eyebrow">SAFESETU</p>
-          <h1>Field Officer Occupancy Dashboard</h1>
+        <div className="field-officer-dashboard__brand">
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
+          <div>
+            <p className="control-room-eyebrow">SAFESETU</p>
+            <h1>Field Officer Occupancy Dashboard</h1>
+          </div>
         </div>
         <div className="field-officer-dashboard__header-actions">
           <button className="dashboard-panel__button" onClick={() => navigate(-1)} type="button">BACK</button>
           <Link className="dashboard-panel__button" to="/">HOME</Link>
-          <Link className="dashboard-panel__button" to="/government/control-room">OPEN GOVT DASHBOARD</Link>
           <button className="dashboard-panel__button" onClick={handleLogout} type="button">
             <LogOut size={14} />
             LOGOUT

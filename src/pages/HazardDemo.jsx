@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Clock3,
   MapPinned,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import L from 'leaflet';
 import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
+import { Link } from 'react-router-dom';
 import { hazardDemoData, hazardDemoPrecautions } from '../data/hazardDemo';
 
 const hazardMarkerIcon = L.divIcon({
@@ -34,6 +36,38 @@ const shelterMarkerIcon = L.divIcon({
   iconAnchor: [9, 9],
 });
 
+const severityBaseMinutes = { CRITICAL: 0.35, HIGH: 0.5, MODERATE: 0.75, LOW: 1 };
+
+function calculateBufferMinutes(incident) {
+  if (!incident) return 0;
+
+  const population = Number(String(incident.peopleAtRisk ?? 0).replace(/,/g, '')) || 0;
+  const hazardBonus =
+    incident.type === 'Cyclone'
+      ? 0.9
+      : incident.type === 'Flood'
+        ? 0.7
+        : incident.type === 'Landslide'
+          ? 0.6
+          : incident.type === 'Heatwave'
+            ? 0.5
+            : 0.8;
+
+  return Math.max(
+    0.5,
+    Number((severityBaseMinutes[incident.severity] + population / 3000 + hazardBonus).toFixed(2)),
+  );
+}
+
+function formatCountdown(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+  const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
 function getOccupancyTone(value) {
   if (value >= 75) return 'critical';
   if (value >= 55) return 'warning';
@@ -56,6 +90,8 @@ export default function HazardDemo() {
   );
 
   const [selectedAreaId, setSelectedAreaId] = useState(approvedRelocationAreas[0]?.id ?? null);
+  const [now, setNow] = useState(Date.now());
+  const [deadlineAt, setDeadlineAt] = useState(Date.now());
 
   const selectedArea =
     approvedRelocationAreas.find((area) => area.id === selectedAreaId) ?? approvedRelocationAreas[0] ?? null;
@@ -70,15 +106,33 @@ export default function HazardDemo() {
     document.getElementById('hazard-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  useEffect(() => {
+    const timerId = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  useEffect(() => {
+    const bufferMinutes = calculateBufferMinutes(hazardDemoData);
+    setDeadlineAt(Date.now() + bufferMinutes * 60 * 1000);
+  }, []);
+
+  const remainingMs = Math.max(0, deadlineAt - now);
+  const isExpired = remainingMs <= 0;
+  const activeHazardLabel = hazardDemoData.name.toUpperCase();
+
   return (
     <div className="hazard-demo-page">
       <header className="hazard-demo-header">
-        <div className="hazard-demo-header__brand">
-          <span className="navbar__mark" aria-hidden="true">S</span>
-          <span>SAFESETU</span>
-        </div>
+        <Link className="hazard-demo-header__brand" to="/">
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
+          <span><strong>SAFESETU</strong><small>Hazard scenario</small></span>
+        </Link>
         <div className="hazard-demo-header__actions">
           <span className="hazard-demo-header__tag">DEMO SCENARIO • ILLUSTRATIVE DATA</span>
+          <Link className="hazard-demo-header__back" to="/">
+            <ArrowLeft size={15} />
+            Safety Map
+          </Link>
         </div>
       </header>
 
@@ -88,13 +142,28 @@ export default function HazardDemo() {
             <AlertTriangle className="hazard-demo-banner__icon" size={20} />
             <span>
               <strong>ACTIVE HAZARD</strong>
-              <em>CYCLONE — ODISHA COAST</em>
+              <em>{activeHazardLabel}</em>
             </span>
           </button>
 
           <div className="hazard-demo-banner__meta">
-            <span className="hazard-demo-banner__risk">CRITICAL RISK</span>
-            <span className="hazard-demo-banner__status">PROTOTYPE / DEMO ONLY</span>
+            <span className="hazard-demo-banner__risk">{hazardDemoData.severity} RISK</span>
+            <span className="hazard-demo-banner__status">{hazardDemoData.status}</span>
+          </div>
+        </section>
+
+        <section className={`hazard-demo-timer${isExpired ? ' hazard-demo-timer--expired' : ''}`} aria-live="polite">
+          <div className="hazard-demo-timer__label">{isExpired ? 'EVACUATION ORDER ISSUED' : 'EVACUATION BUFFER'}</div>
+          <div className="hazard-demo-timer__content">
+            <strong className="hazard-demo-timer__value">{isExpired ? 'NOW' : formatCountdown(remainingMs)}</strong>
+            <div className="hazard-demo-timer__details">
+              <span>{isExpired ? 'IMMEDIATE ACTION' : `${hazardDemoData.type.toUpperCase()} ALERT`}</span>
+              <small>
+                {isExpired
+                  ? 'Residents in the affected zone should move to the nearest safe area immediately.'
+                  : `${hazardDemoData.name} · ${hazardDemoData.recommendedAction}`}
+              </small>
+            </div>
           </div>
         </section>
 
@@ -106,6 +175,17 @@ export default function HazardDemo() {
                 <h2>Active Scenario Overview</h2>
               </div>
               <span className="hazard-demo-map-panel__chip">⚠ ACTIVE</span>
+              {selectedArea && (
+                <button
+                  aria-label={`Open navigation to ${selectedArea.name}`}
+                  className="hazard-demo-map-panel__navigate"
+                  onClick={handleNavigation}
+                  type="button"
+                >
+                  <Navigation size={16} />
+                  Open navigation
+                </button>
+              )}
             </div>
 
             <div className="hazard-demo-map-frame">
@@ -347,7 +427,7 @@ export default function HazardDemo() {
                 <p className="eyebrow">Selected destination</p>
                 <h3>{selectedArea.name}</h3>
               </div>
-              <button onClick={handleNavigation} type="button">
+              <button aria-label={`Open navigation to ${selectedArea.name}`} onClick={handleNavigation} type="button">
                 OPEN NAVIGATION
                 <ArrowRight size={16} />
               </button>

@@ -75,7 +75,7 @@ export default function Login() {
     <main className="login-page">
       <section className="login-page__branding" aria-label="SAFESETU platform identity">
         <Link className="login-brand" to="/" aria-label="Return to SAFESETU public map">
-          <span className="login-brand__mark"><ShieldCheck size={26} strokeWidth={1.8} /></span>
+          <img alt="SAFESETU logo" className="login-brand__mark" src="/logo.svg" />
           <span>SAFESETU</span>
         </Link>
         <div className="login-page__identity">
