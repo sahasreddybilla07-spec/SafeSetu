@@ -197,7 +197,7 @@ export default function ControlRoom() {
     <div className="control-room-shell">
       <aside className="control-room-sidebar" aria-label="Government controls sidebar">
         <div className="control-room-sidebar__brand">
-          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
           <div>
             <strong>SAFESETU</strong>
             <small>CONTROL ROOM</small>

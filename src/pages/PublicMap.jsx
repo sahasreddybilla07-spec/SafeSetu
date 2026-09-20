@@ -64,7 +64,7 @@ function AlertsOverlay({ alerts, onSelect, onViewAll }) {
     <section className="map-overlay-card map-overlay-card--alerts" aria-labelledby="alerts-overlay-title">
       <div className="map-overlay-card__heading"><div><p>Public advisories</p><h2 id="alerts-overlay-title">Top Alerts</h2></div><span className="map-overlay-card__count">{alerts.length}</span></div>
       <div className="map-overlay-card__alert-list">{alerts.map((incident) => <AlertCard incident={incident} key={incident.id} onSelect={() => onSelect(incident.id)} />)}</div>
-      <button className="map-overlay-card__link" onClick={onViewAll} type="button">View all advisories</button>
+      <button className="map-overlay-card__link" onClick={onViewAll} type="button">View all alerts</button>
     </section>
   );
 }
@@ -102,8 +102,8 @@ export default function PublicMap() {
           <IncidentDetails incident={selectedIncident} onClose={() => setSelectedIncidentId(null)} />
           <aside className="map-overlay-stack" aria-label="Map advisories and safe areas">
             <button className="map-scenario-cta" onClick={() => navigate('/hazard-demo')} type="button">View hazard scenario</button>
-            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={shelters.slice(0, 3)} />
-            <AlertsOverlay alerts={sortedAlerts.slice(0, 4)} onSelect={focusIncident} onViewAll={() => navigate('/#alerts')} />
+            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={shelters.slice(0, 2)} />
+            <AlertsOverlay alerts={sortedAlerts.slice(0, 3)} onSelect={focusIncident} onViewAll={() => navigate('/#alerts')} />
           </aside>
         </section>
       </main>

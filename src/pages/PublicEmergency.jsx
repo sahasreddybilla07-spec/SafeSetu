@@ -42,7 +42,7 @@ function NoActivePlan() {
     <div className="emergency-page">
       <header className="emergency-header">
         <div className="emergency-header__brand">
-          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/logo.svg" />
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
           <strong>SAFESETU</strong>
           <span>EMERGENCY ASSISTANCE</span>
         </div>
@@ -92,7 +92,7 @@ export default function PublicEmergency() {
     <div className="emergency-page">
       <header className="emergency-header">
         <div className="emergency-header__brand">
-          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/logo.svg" />
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
           <strong>SAFESETU</strong>
           <span>EMERGENCY ASSISTANCE</span>
         </div>

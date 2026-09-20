@@ -91,7 +91,7 @@ export default function FieldOfficerDashboard() {
     <div className="field-officer-dashboard">
       <header className="field-officer-dashboard__header">
         <div className="field-officer-dashboard__brand">
-          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
           <div>
             <p className="control-room-eyebrow">SAFESETU</p>
             <h1>Field Officer Occupancy Dashboard</h1>
