@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import LanguageSelector from './components/LanguageSelector';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import { LanguageProvider } from './i18n/LanguageContext';
 import ControlRoom from './pages/ControlRoom';
 import ControlRoomLocationMap from './pages/ControlRoomLocationMap';
 import ControlRoomOverview from './pages/ControlRoomOverview';
@@ -39,8 +41,10 @@ function FieldOfficerRouteGuard() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <LanguageProvider>
+      <BrowserRouter>
+        <LanguageSelector />
+        <Routes>
         <Route path="/" element={<PublicMap />} />
         <Route path="/hazard-demo" element={<HazardDemo />} />
         <Route path="/login" element={<Login />} />
@@ -62,7 +66,8 @@ export default function App() {
           <Route path="roadmap" element={<Navigate to="/admin" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }

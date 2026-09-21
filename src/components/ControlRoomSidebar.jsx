@@ -12,6 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const NAV_ITEMS = [
   { key: 'overview', label: 'Overview', icon: ShieldAlert, path: '/government/control-room' },
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
 
 export default function ControlRoomSidebar({ active }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   function handleLogout() {
     localStorage.removeItem('safesetu-gov-auth');
@@ -56,7 +58,7 @@ export default function ControlRoomSidebar({ active }) {
               type="button"
             >
               <Icon size={15} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </button>
           );
         })}
@@ -65,11 +67,11 @@ export default function ControlRoomSidebar({ active }) {
       <div className="crs-sidebar__footer">
         <button className="crs-sidebar__footer-item" onClick={() => navigate('/')} type="button">
           <Globe size={14} />
-          Public Platform
+          {t('Public Platform')}
         </button>
         <button className="crs-sidebar__footer-item crs-sidebar__footer-item--logout" onClick={handleLogout} type="button">
           <LogOut size={14} />
-          Logout
+          {t('Logout')}
         </button>
       </div>
     </aside>
