@@ -38,7 +38,7 @@ export default function ControlRoomSidebar({ active }) {
   return (
     <aside className="crs-sidebar" aria-label="Control Room navigation">
       <div className="crs-sidebar__brand">
-        <img alt="" aria-hidden="true" className="crs-sidebar__mark" src="/logo.svg" />
+        <img alt="" aria-hidden="true" className="crs-sidebar__mark" src="/safesetu-crest.png" />
         <div>
           <strong>SAFESETU</strong>
           <span>CONTROL ROOM</span>

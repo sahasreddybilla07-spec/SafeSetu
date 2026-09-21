@@ -185,7 +185,7 @@ export default function ControlRoomOverview() {
       <main className="crs-main">
         <header className="cr-overview__header">
           <div className="cr-overview__brand">
-            <img alt="" aria-hidden="true" className="cr-overview__mark" src="/logo.svg" />
+            <img alt="" aria-hidden="true" className="cr-overview__mark" src="/safesetu-crest.png" />
             <div>
               <p className="cr-overview__eyebrow">SAFESETU</p>
               <h1>NATIONAL DISASTER CONTROL ROOM</h1>

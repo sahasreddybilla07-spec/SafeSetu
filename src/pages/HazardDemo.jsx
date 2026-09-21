@@ -144,7 +144,7 @@ export default function HazardDemo() {
     <div className="hazard-demo-page">
       <header className="hazard-demo-header">
         <Link className="hazard-demo-header__brand" to="/">
-          <img alt="" aria-hidden="true" className="navbar__mark" src="/logo.svg" />
+          <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
           <span><strong>SAFESETU</strong></span>
         </Link>
         <div className="hazard-demo-header__actions">
