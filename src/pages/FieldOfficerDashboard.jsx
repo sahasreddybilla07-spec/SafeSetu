@@ -9,10 +9,22 @@ function formatNumber(value) {
 
 export default function FieldOfficerDashboard() {
   const navigate = useNavigate();
-  const [demoData, setDemoData] = useState(() => getHazardDemoData());
+  const [refreshKey, setRefreshKey] = useState(0);
   const [selectedAreaId, setSelectedAreaId] = useState('');
   const [formState, setFormState] = useState({ capacity: '', peoplePresent: '' });
   const [notice, setNotice] = useState('');
+  const demoData = useMemo(() => getHazardDemoData(), [refreshKey]);
+
+  useEffect(() => {
+    const refreshData = () => setRefreshKey((value) => value + 1);
+    window.addEventListener('safesetu-hazard-demo-updated', refreshData);
+    window.addEventListener('storage', refreshData);
+
+    return () => {
+      window.removeEventListener('safesetu-hazard-demo-updated', refreshData);
+      window.removeEventListener('storage', refreshData);
+    };
+  }, []);
 
   useEffect(() => {
     if (!demoData.relocationAreas?.length) {
@@ -67,12 +79,12 @@ export default function FieldOfficerDashboard() {
       return;
     }
 
-    const nextData = applyFieldOfficerUpdate(selectedArea.id, {
+    applyFieldOfficerUpdate(selectedArea.id, {
       capacity,
       peoplePresent,
     });
 
-    setDemoData(nextData);
+    setRefreshKey((value) => value + 1);
     setNotice(`Updated ${selectedArea.name}. Government dashboard has been refreshed with the new occupancy.`);
   }
 

@@ -102,7 +102,7 @@ export default function PublicMap() {
           <IncidentDetails incident={selectedIncident} onClose={() => setSelectedIncidentId(null)} />
           <aside className="map-overlay-stack" aria-label="Map advisories and safe areas">
             <button className="map-scenario-cta" onClick={() => navigate('/hazard-demo')} type="button">View hazard scenario</button>
-            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={shelters.slice(0, 2)} />
+            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={shelters} />
             <AlertsOverlay alerts={sortedAlerts.slice(0, 3)} onSelect={focusIncident} onViewAll={() => navigate('/#alerts')} />
           </aside>
         </section>

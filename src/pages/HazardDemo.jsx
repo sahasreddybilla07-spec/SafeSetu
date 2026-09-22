@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock3,
+  FileWarning,
   MapPinned,
   Navigation,
   ShieldCheck,
@@ -13,8 +14,9 @@ import {
 } from 'lucide-react';
 import L from 'leaflet';
 import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { hazardDemoData, hazardDemoPrecautions } from '../data/hazardDemo';
+import { createEmergencyAssistanceRequest } from '../data/emergencyAssistance';
 
 const hazardMarkerIcon = L.divIcon({
   className: 'hazard-demo-marker-wrapper',
@@ -96,6 +98,7 @@ function isVeryRiskyRoute(area) {
 }
 
 export default function HazardDemo() {
+  const navigate = useNavigate();
   const approvedRelocationAreas = useMemo(
     () => hazardDemoData.relocationAreas.filter((area) => area.approved),
     []
@@ -105,10 +108,15 @@ export default function HazardDemo() {
   const [now, setNow] = useState(Date.now());
   const [deadlineAt, setDeadlineAt] = useState(Date.now());
   const [emergencyNotified, setEmergencyNotified] = useState(false);
+  const [noEscapeDemo, setNoEscapeDemo] = useState(false);
+  const [assistanceId, setAssistanceId] = useState(null);
 
   const selectedArea =
     approvedRelocationAreas.find((area) => area.id === selectedAreaId) ?? approvedRelocationAreas[0] ?? null;
-  const viableEscapeRoutes = approvedRelocationAreas.filter((area) => !isRouteUnavailable(area));
+  const displayedRelocationAreas = noEscapeDemo
+    ? approvedRelocationAreas.map((area) => ({ ...area, roadStatus: 'UNSAFE', risk: 'CRITICAL', riskLevel: 'CRITICAL', safetyScore: 20, routeStatus: 'Demonstration: route is unsafe' }))
+    : approvedRelocationAreas;
+  const viableEscapeRoutes = noEscapeDemo ? [] : approvedRelocationAreas.filter((area) => !isRouteUnavailable(area));
   const hasNoEscapeRoute = viableEscapeRoutes.length === 0;
   const hasOnlyVeryRiskyRoutes = viableEscapeRoutes.length > 0 && viableEscapeRoutes.every(isVeryRiskyRoute);
   const emergencyAvailable = hasNoEscapeRoute || hasOnlyVeryRiskyRoutes;
@@ -139,6 +147,17 @@ export default function HazardDemo() {
   const remainingMs = Math.max(0, deadlineAt - now);
   const isExpired = remainingMs <= 0;
   const activeHazardLabel = hazardDemoData.name.toUpperCase();
+
+  function handleEmergencyRequest() {
+    const request = createEmergencyAssistanceRequest({
+      hazardId: hazardDemoData.id,
+      hazard: hazardDemoData.name,
+      location: hazardDemoData.userLocation.label,
+      reason: emergencyReason,
+    });
+    setAssistanceId(request.id);
+    setEmergencyNotified(true);
+  }
 
   return (
     <div className="hazard-demo-page">
@@ -185,6 +204,11 @@ export default function HazardDemo() {
               </small>
             </div>
           </div>
+        </section>
+
+        <section className={`hazard-demo-no-escape${noEscapeDemo ? ' hazard-demo-no-escape--active' : ''}`}>
+          <div><FileWarning size={18} /><span><strong>No escape routes demo</strong><small>Simulate a situation where every available route is unsafe.</small></span></div>
+          <button onClick={() => { setNoEscapeDemo((current) => !current); setEmergencyNotified(false); setAssistanceId(null); }} type="button">{noEscapeDemo ? 'Restore route scenario' : 'Start demo'}</button>
         </section>
 
         <section className="hazard-demo-grid">
@@ -243,13 +267,13 @@ export default function HazardDemo() {
                   </Popup>
                 </Marker>
 
-                {approvedRelocationAreas.map((area) => (
+                {displayedRelocationAreas.map((area) => (
                   <CircleMarker
                     center={area.position}
                     eventHandlers={{ click: () => setSelectedAreaId(area.id) }}
                     key={area.id}
                     pathOptions={{
-                      color: selectedAreaId === area.id ? '#1d8f5f' : '#0d6bc0',
+                      color: noEscapeDemo ? '#d9485f' : selectedAreaId === area.id ? '#1d8f5f' : '#0d6bc0',
                       fillColor: '#ffffff',
                       fillOpacity: 1,
                       weight: selectedAreaId === area.id ? 4 : 2,
@@ -266,7 +290,7 @@ export default function HazardDemo() {
 
                 {selectedArea && (
                   <Polyline
-                    pathOptions={{ color: '#1d67c6', dashArray: '10 8', weight: 4, opacity: 0.9 }}
+                    pathOptions={{ color: noEscapeDemo ? '#d9485f' : '#1d67c6', dashArray: '10 8', weight: 4, opacity: 0.9 }}
                     positions={[hazardDemoData.userLocation.position, selectedArea.position]}
                   />
                 )}
@@ -291,12 +315,12 @@ export default function HazardDemo() {
                 aria-describedby="emergency-assistance-status"
                 className={`hazard-demo-emergency-action${emergencyNotified ? ' hazard-demo-emergency-action--notified' : ''}`}
                 disabled={!emergencyAvailable || emergencyNotified}
-                onClick={() => setEmergencyNotified(true)}
+                onClick={handleEmergencyRequest}
                 type="button"
               >
                 <Siren size={20} />
                 <span>
-                  <strong>{emergencyNotified ? 'GOVERNMENT HAS BEEN NOTIFIED' : 'EMERGENCY ASSISTANCE'}</strong>
+                  <strong>{emergencyNotified ? 'OFFICIALS HAVE BEEN NOTIFIED' : 'EMERGENCY ASSISTANCE'}</strong>
                   <small aria-live="polite" id="emergency-assistance-status">
                     {emergencyNotified
                       ? 'Help request sent to the Government Control Room.'
@@ -306,6 +330,7 @@ export default function HazardDemo() {
                   </small>
                 </span>
               </button>
+              {emergencyNotified && <button className="hazard-demo-report-action" onClick={() => navigate('/hazard-demo/report', { state: { assistanceId } })} type="button">Demonstrate your situation</button>}
             </div>
           </div>
 
@@ -393,7 +418,7 @@ export default function HazardDemo() {
           </div>
 
           <div className="hazard-demo-relocation-grid">
-            {approvedRelocationAreas.map((area) => {
+            {displayedRelocationAreas.map((area) => {
               const availableSpaces = Math.round(area.capacity * (1 - area.occupancy / 100));
               const occupancyTone = getOccupancyTone(area.occupancy);
               const isSelected = selectedAreaId === area.id;
