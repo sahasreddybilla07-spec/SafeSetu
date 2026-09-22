@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const navigationItems = [
   { label: 'Dashboard', to: '/admin', end: true },
@@ -7,6 +8,8 @@ const navigationItems = [
 ];
 
 export default function Sidebar() {
+  const { t } = useLanguage();
+
   return (
     <aside className="sidebar" aria-label="Admin navigation">
       <nav className="sidebar__nav">
@@ -17,7 +20,7 @@ export default function Sidebar() {
             key={to}
             to={to}
           >
-            {label}
+            {t(label)}
           </NavLink>
         ))}
       </nav>
