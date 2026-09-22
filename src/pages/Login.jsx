@@ -118,7 +118,7 @@ export default function Login() {
           {!selectedRole && (
             <div className="login-role-grid" aria-label="Choose a login role">
               {[
-                ['monitoringOfficer', { label: 'Monitoring Officer', description: 'Choose Central, State, or District access level', icon: <Globe2 size={20} /> }],
+                ['monitoringOfficer', { label: 'Monitoring Officer', description: 'Choose State or District access level', icon: <Globe2 size={20} /> }],
                 ['fieldOfficer', DEMO_ACCOUNTS.fieldOfficer],
               ].map(([role, details]) => (
                 <button
@@ -141,11 +141,11 @@ export default function Login() {
 
           {selectedRole === 'monitoringOfficer' && !selectedScope && (
             <div className="login-scope-grid" aria-label="Choose monitoring level">
-              {['national', 'state', 'district'].map((scope) => {
+              {['state', 'district'].map((scope) => {
                 const details = DEMO_ACCOUNTS[scope];
                 return (
                   <button className="login-role-card" key={scope} onClick={() => { setSelectedScope(scope); setError(''); }} type="button">
-                    <strong>{scope === 'national' ? 'Central / India-wide' : `${scope[0].toUpperCase()}${scope.slice(1)} level`}</strong>
+                    <strong>{scope === 'state' ? 'State login' : 'District login'}</strong>
                     <small>{details.description}</small>
                   </button>
                 );

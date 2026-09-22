@@ -1,11 +1,12 @@
-import { useEffect, useMemo } from 'react';
-import { ArrowRight, Boxes, ClipboardList, Globe2, MapPinned, Megaphone, ShieldCheck, Siren, UserPlus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Boxes, CheckCircle2, ClipboardList, Globe2, MapPinned, Megaphone, ShieldCheck, Siren, UserPlus, XCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ControlRoomSidebar from '../components/ControlRoomSidebar';
 import { controlRoomLocations } from '../data/controlRoomLocations';
 import { getHazardDemoData } from '../data/hazardDemo';
 import { getRoleConfig, isGovernmentAuthenticated, hasPermission } from '../utils/rbac';
 import { getEmergencyAssistanceRequests } from '../data/emergencyAssistance';
+import { getCentreOperations, updateSupplyRequestStatus } from '../data/centreOperations';
 
 const ROLE_HEADINGS = {
   national: 'NATIONAL OPERATIONS DASHBOARD',
@@ -21,13 +22,14 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
   const [refreshKey, setRefreshKey] = useState(0);
   const data = useMemo(() => getHazardDemoData(), [refreshKey]);
   const assistanceRequests = useMemo(() => getEmergencyAssistanceRequests(), [refreshKey]);
-
   useEffect(() => {
     const refresh = () => setRefreshKey((value) => value + 1);
     window.addEventListener('safesetu-emergency-assistance-updated', refresh);
+    window.addEventListener('safesetu-centre-ops-updated', refresh);
     window.addEventListener('storage', refresh);
     return () => {
       window.removeEventListener('safesetu-emergency-assistance-updated', refresh);
+      window.removeEventListener('safesetu-centre-ops-updated', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);
@@ -55,6 +57,16 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
     };
   });
 
+  const districtSupplyRequests = useMemo(() => {
+    if (role !== 'district') return [];
+    return liveLocations.flatMap((location) => {
+      const hazard = data.hazards.find((item) => item.id === location.hazardId);
+      return (hazard?.relocationAreas ?? []).flatMap((area) => (getCentreOperations(area).requestLog ?? [])
+        .filter((request) => request.type === 'DISTRICT SUPPLY REQUEST')
+        .map((request) => ({ ...request, centreId: area.id, centreName: area.name, location: location.location })));
+    });
+  }, [data, liveLocations, role]);
+
   if (!config) return null;
 
   const totalRisk = liveLocations.reduce((sum, location) => sum + location.peopleAtRisk, 0);
@@ -69,6 +81,11 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
     { permission: 'send-alerts', title: 'Send an official alert', description: 'Communicate verified instructions to affected audiences.', icon: Megaphone, path: '/government/control-room/communication' },
     { permission: 'view-history', title: 'Review incident history', description: 'Inspect completed and previously monitored hazards.', icon: ShieldCheck, path: '/government/control-room/incident-history' },
   ].filter((action) => hasPermission(action.permission, role));
+
+  function handleSupplyRequestStatus(request, status) {
+    updateSupplyRequestStatus(request.centreId, request.time, status);
+    setRefreshKey((value) => value + 1);
+  }
 
   return (
     <div className="crs-layout">
@@ -89,6 +106,8 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
         {assistanceRequests.length > 0 && <section className="cr-assistance-alert" aria-live="polite"><Siren size={20} /><div><strong>Emergency assistance requested</strong><span>{assistanceRequests.filter((request) => request.status === 'NEW' || request.status === 'REPORT_RECEIVED').length} person(s) have notified officials that no safe escape route is available.</span></div><button onClick={() => navigate('/government/control-room/unsafe-routes')} type="button">Open response view <ArrowRight size={14} /></button></section>}
 
         {assistanceRequests.filter((request) => request.report).map((request) => <section className="cr-situation-report" key={request.id}><div className="cr-situation-report__heading"><div><p>INCOMING SITUATION REPORT</p><h2>{request.hazard}</h2><span>{request.location} · {new Date(request.report.submittedAt).toLocaleString('en-IN')}</span></div><span className="cr-situation-report__status">REPORT RECEIVED</span></div>{request.report.text && <p className="cr-situation-report__text">{request.report.text}</p>}<div className="cr-situation-report__media">{request.report.image && <figure><img alt="Reported situation" src={request.report.image.data} /><figcaption>{request.report.image.name}</figcaption></figure>}{request.report.audio && <div><span>Audio evidence</span><audio controls src={request.report.audio.data}>Your browser cannot play this audio.</audio></div>}</div></section>)}
+
+        {role === 'district' && <section className="cr-role-dashboard__section cr-district-requests"><div className="cr-role-dashboard__section-heading"><div><p>DISTRICT OPERATIONS INBOX</p><h2>Supply requests from field officers</h2></div><span>{districtSupplyRequests.filter((request) => request.status === 'REQUESTED').length} pending</span></div>{districtSupplyRequests.length === 0 ? <p className="empty-state">No supply requests have been submitted.</p> : <div className="cr-district-requests__list">{districtSupplyRequests.map((request) => <article key={`${request.centreId}-${request.time}`}><div><span className={`cr-request-status cr-request-status--${request.status.toLowerCase()}`}>{request.status}</span><h3>{request.quantity} {request.item}</h3><p>{request.centreName} · {request.location}{request.note ? ` · ${request.note}` : ''}</p><small>{new Date(request.time).toLocaleString('en-IN')}</small></div>{request.status === 'REQUESTED' && <div className="cr-district-requests__actions"><button onClick={() => handleSupplyRequestStatus(request, 'FULFILLED')} type="button"><CheckCircle2 size={14} /> Fulfill</button><button onClick={() => handleSupplyRequestStatus(request, 'DECLINED')} type="button"><XCircle size={14} /> Decline</button></div>}</article>)}</div>}</section>}
 
         <section className="cr-role-dashboard__section"><div className="cr-role-dashboard__section-heading"><div><p>LIVE SCOPE</p><h2>{role === 'national' ? 'India-wide hazard monitoring' : role === 'state' ? 'State hazard coordination' : 'District response picture'}</h2></div></div><div className="cr-role-dashboard__locations">{liveLocations.map((location) => <article key={location.hazardId}><div><span>{location.hazardType}</span><h3>{location.location}</h3><p>{location.district} · {location.severity} priority</p></div><strong>{location.available.toLocaleString('en-IN')}<small> spaces free</small></strong><button onClick={() => navigate(`/government/control-room/hazard/${location.hazardId}`)} type="button">Open response view <ArrowRight size={14} /></button></article>)}</div></section>
 

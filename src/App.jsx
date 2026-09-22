@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import LanguageSelector from './components/LanguageSelector';
+import GlobalBackButton from './components/GlobalBackButton';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import { LanguageProvider } from './i18n/LanguageContext';
@@ -55,6 +56,7 @@ export default function App() {
     <LanguageProvider>
       <BrowserRouter>
         <LanguageSelector />
+        <GlobalBackButton />
         <Routes>
         <Route path="/" element={<PublicMap />} />
         <Route path="/hazard-demo" element={<HazardDemo />} />
