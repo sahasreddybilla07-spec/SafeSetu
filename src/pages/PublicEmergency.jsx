@@ -14,13 +14,14 @@ const startIcon = L.divIcon({
 });
 
 const flowSteps = [
-  'Hazard Detected',
-  'Officer Analyses',
-  'Evacuation Plan Selected',
-  'Plan Sent to Public',
-  'Citizen Receives Alert',
-  'Route to Assigned Shelter',
-  'Safety Confirmed',
+  'Government / Disaster Management Authority',
+  'Registered Safe Locations',
+  'SafeSetu Database',
+  'ML + GIS Analysis',
+  'Which registered locations are suitable for this particular hazard?',
+  'Government Control Room',
+  'Final Approval',
+  'Public Users',
 ];
 
 function EmergencyFlow({ activeIndex }) {
@@ -40,7 +41,11 @@ function NoActivePlan() {
   return (
     <div className="emergency-page">
       <header className="emergency-header">
-        <div className="emergency-header__brand">SAFESETU <span>EMERGENCY ASSISTANCE</span></div>
+        <div className="emergency-header__brand">
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
+          <strong>SAFESETU</strong>
+          <span>EMERGENCY ASSISTANCE</span>
+        </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
       </header>
       <main className="emergency-empty">
@@ -81,12 +86,16 @@ export default function PublicEmergency() {
     setSafety(record);
   }
 
-  const activeStepIndex = safety ? 6 : 5;
+  const activeStepIndex = safety ? 7 : 6;
 
   return (
     <div className="emergency-page">
       <header className="emergency-header">
-        <div className="emergency-header__brand">SAFESETU <span>EMERGENCY ASSISTANCE</span></div>
+        <div className="emergency-header__brand">
+          <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
+          <strong>SAFESETU</strong>
+          <span>EMERGENCY ASSISTANCE</span>
+        </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
       </header>
 
