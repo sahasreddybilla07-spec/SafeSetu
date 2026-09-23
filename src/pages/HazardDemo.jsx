@@ -1,20 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   Clock3,
+  FileWarning,
   MapPinned,
   Navigation,
   ShieldCheck,
   Siren,
+  Volume2,
+  VolumeX,
   Users,
   Waves,
 } from 'lucide-react';
 import L from 'leaflet';
 import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { hazardDemoData, hazardDemoPrecautions } from '../data/hazardDemo';
+import { createEmergencyAssistanceRequest } from '../data/emergencyAssistance';
 
 const hazardMarkerIcon = L.divIcon({
   className: 'hazard-demo-marker-wrapper',
@@ -96,6 +100,7 @@ function isVeryRiskyRoute(area) {
 }
 
 export default function HazardDemo() {
+  const navigate = useNavigate();
   const approvedRelocationAreas = useMemo(
     () => hazardDemoData.relocationAreas.filter((area) => area.approved),
     []
@@ -105,25 +110,31 @@ export default function HazardDemo() {
   const [now, setNow] = useState(Date.now());
   const [deadlineAt, setDeadlineAt] = useState(Date.now());
   const [emergencyNotified, setEmergencyNotified] = useState(false);
+  const [noEscapeDemo, setNoEscapeDemo] = useState(false);
+  const [assistanceId, setAssistanceId] = useState(null);
+  const [sirenEnabled, setSirenEnabled] = useState(false);
+  const [showSafetyManual, setShowSafetyManual] = useState(false);
+  const audioContextRef = useRef(null);
+  const sirenIntervalRef = useRef(null);
 
   const selectedArea =
     approvedRelocationAreas.find((area) => area.id === selectedAreaId) ?? approvedRelocationAreas[0] ?? null;
-  const viableEscapeRoutes = approvedRelocationAreas.filter((area) => !isRouteUnavailable(area));
+  const displayedRelocationAreas = noEscapeDemo
+    ? approvedRelocationAreas.map((area) => ({ ...area, roadStatus: 'UNSAFE', risk: 'CRITICAL', riskLevel: 'CRITICAL', safetyScore: 20, routeStatus: 'Demonstration: route is unsafe' }))
+    : approvedRelocationAreas;
+  const viableEscapeRoutes = noEscapeDemo ? [] : approvedRelocationAreas.filter((area) => !isRouteUnavailable(area));
   const hasNoEscapeRoute = viableEscapeRoutes.length === 0;
   const hasOnlyVeryRiskyRoutes = viableEscapeRoutes.length > 0 && viableEscapeRoutes.every(isVeryRiskyRoute);
   const emergencyAvailable = hasNoEscapeRoute || hasOnlyVeryRiskyRoutes;
   const emergencyReason = hasNoEscapeRoute
     ? 'No approved escape route is currently available.'
     : 'All available escape routes are currently very high risk.';
+  const assistanceConfirmed = emergencyNotified || Boolean(assistanceId);
 
   function handleNavigation() {
     if (!selectedArea) return;
     const { osmUrl } = getNavigationUrl(selectedArea);
     window.open(osmUrl, '_blank', 'noopener,noreferrer');
-  }
-
-  function scrollToHazardDetails() {
-    document.getElementById('hazard-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   useEffect(() => {
@@ -138,10 +149,83 @@ export default function HazardDemo() {
 
   const remainingMs = Math.max(0, deadlineAt - now);
   const isExpired = remainingMs <= 0;
-  const activeHazardLabel = hazardDemoData.name.toUpperCase();
+  const hazardInstructions = {
+    Cyclone: ['Move inland or to an approved shelter before winds intensify.', 'Stay away from windows, coastal areas, bridges, and floodwater.', 'Keep emergency supplies, identity documents, medicines, and drinking water ready.'],
+    Flood: ['Move to higher ground and use only routes confirmed by officials.', 'Never walk or drive through moving or unknown-depth water.', 'Switch off electricity if water enters the building and keep children away from drains.'],
+    Landslide: ['Leave slopes, valleys, and areas below unstable ground immediately.', 'Watch for falling rocks, cracks, unusual sounds, and suddenly blocked roads.', 'Do not return until officials confirm the route and structure are safe.'],
+    Heatwave: ['Move indoors or to a cooling centre and avoid direct sun.', 'Drink water regularly and check on elderly people, children, and vulnerable neighbours.', 'Avoid strenuous activity during the hottest part of the day.'],
+    Earthquake: ['Drop, cover, and hold on during shaking.', 'After shaking stops, move away from damaged buildings, glass, and utility lines.', 'Expect aftershocks and follow official instructions before re-entering buildings.'],
+  }[hazardDemoData.type] ?? ['Move away from the hazard zone and follow official instructions.', 'Use an approved safe area and avoid blocked or restricted routes.', 'Keep communication devices charged and stay with vulnerable people.'];
+  const localityDangerActive = hazardDemoData.status === 'ACTIVE' && ['CRITICAL', 'HIGH'].includes(hazardDemoData.severity);
+  const emergencyVisualActive = localityDangerActive || noEscapeDemo;
+
+  function stopSiren() {
+    if (sirenIntervalRef.current) {
+      window.clearInterval(sirenIntervalRef.current);
+      sirenIntervalRef.current = null;
+    }
+    audioContextRef.current?.close();
+    audioContextRef.current = null;
+    setSirenEnabled(false);
+  }
+
+  function startSiren() {
+    if (sirenEnabled) {
+      stopSiren();
+      return;
+    }
+
+    if (audioContextRef.current) {
+      audioContextRef.current.resume().catch(() => {});
+      setSirenEnabled(true);
+      return;
+    }
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const gain = context.createGain();
+    gain.gain.value = 0.045;
+    gain.connect(context.destination);
+    let highTone = false;
+    const playTone = () => {
+      const oscillator = context.createOscillator();
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.value = highTone ? 920 : 560;
+      oscillator.connect(gain);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.42);
+      highTone = !highTone;
+    };
+    playTone();
+    sirenIntervalRef.current = window.setInterval(playTone, 460);
+    audioContextRef.current = context;
+    setSirenEnabled(true);
+  }
+
+  useEffect(() => () => stopSiren(), []);
+
+  useEffect(() => {
+    if (emergencyVisualActive) {
+      startSiren();
+    } else {
+      stopSiren();
+    }
+  }, [emergencyVisualActive]);
+
+  function handleEmergencyRequest() {
+    const request = createEmergencyAssistanceRequest({
+      hazardId: hazardDemoData.id,
+      hazard: hazardDemoData.name,
+      location: hazardDemoData.userLocation.label,
+      reason: emergencyReason,
+    });
+    setAssistanceId(request.id);
+    setEmergencyNotified(true);
+  }
 
   return (
-    <div className="hazard-demo-page">
+    <div className={`hazard-demo-page${emergencyVisualActive ? ' hazard-demo-page--emergency' : ''}`}>
       <header className="hazard-demo-header">
         <Link className="hazard-demo-header__brand" to="/">
           <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
@@ -156,22 +240,9 @@ export default function HazardDemo() {
         </div>
       </header>
 
+      {emergencyVisualActive && <section className="hazard-demo-emergency-banner" aria-live="assertive"><Siren size={22} /><div><strong>{noEscapeDemo ? 'EMERGENCY: NO SAFE ESCAPE ROUTE' : `DANGER ALERT: ${hazardDemoData.name.toUpperCase()}`}</strong><span>{noEscapeDemo ? 'Move away from danger if possible. Officials are being alerted.' : 'People in this locality are facing an active hazard. Follow official evacuation and safety instructions.'}</span></div><div className="hazard-demo-emergency-banner__actions"><button onClick={startSiren} type="button">{sirenEnabled ? <><VolumeX size={15} /> Mute siren</> : <><Volume2 size={15} /> Play siren</>}</button><button onClick={() => setShowSafetyManual(true)} type="button"><BookOpen size={15} /> Safety manual</button></div></section>}
+
       <main className="hazard-demo-main">
-        <section className="hazard-demo-banner" aria-label="Active hazard warning banner">
-          <button className="hazard-demo-banner__badge" onClick={scrollToHazardDetails} type="button">
-            <AlertTriangle className="hazard-demo-banner__icon" size={20} />
-            <span>
-              <strong>ACTIVE HAZARD</strong>
-              <em>{activeHazardLabel}</em>
-            </span>
-          </button>
-
-          <div className="hazard-demo-banner__meta">
-            <span className="hazard-demo-banner__risk">{hazardDemoData.severity} RISK</span>
-            <span className="hazard-demo-banner__status">{hazardDemoData.status}</span>
-          </div>
-        </section>
-
         <section className={`hazard-demo-timer${isExpired ? ' hazard-demo-timer--expired' : ''}`} aria-live="polite">
           <div className="hazard-demo-timer__label">{isExpired ? 'EVACUATION ORDER ISSUED' : 'EVACUATION BUFFER'}</div>
           <div className="hazard-demo-timer__content">
@@ -185,6 +256,11 @@ export default function HazardDemo() {
               </small>
             </div>
           </div>
+        </section>
+
+        <section className={`hazard-demo-no-escape${noEscapeDemo ? ' hazard-demo-no-escape--active' : ''}`}>
+          <div><FileWarning size={18} /><span><strong>No escape routes demo</strong><small>Simulate a situation where every available route is unsafe.</small></span></div>
+          <button onClick={() => { const nextValue = !noEscapeDemo; setNoEscapeDemo(nextValue); setEmergencyNotified(false); setAssistanceId(null); if (nextValue && !sirenEnabled) startSiren(); if (!nextValue) stopSiren(); }} type="button">{noEscapeDemo ? 'Restore route scenario' : 'Start demo'}</button>
         </section>
 
         <section className="hazard-demo-grid">
@@ -243,13 +319,13 @@ export default function HazardDemo() {
                   </Popup>
                 </Marker>
 
-                {approvedRelocationAreas.map((area) => (
+                {displayedRelocationAreas.map((area) => (
                   <CircleMarker
                     center={area.position}
                     eventHandlers={{ click: () => setSelectedAreaId(area.id) }}
                     key={area.id}
                     pathOptions={{
-                      color: selectedAreaId === area.id ? '#1d8f5f' : '#0d6bc0',
+                      color: noEscapeDemo ? '#d9485f' : selectedAreaId === area.id ? '#1d8f5f' : '#0d6bc0',
                       fillColor: '#ffffff',
                       fillOpacity: 1,
                       weight: selectedAreaId === area.id ? 4 : 2,
@@ -266,7 +342,7 @@ export default function HazardDemo() {
 
                 {selectedArea && (
                   <Polyline
-                    pathOptions={{ color: '#1d67c6', dashArray: '10 8', weight: 4, opacity: 0.9 }}
+                    pathOptions={{ color: noEscapeDemo ? '#d9485f' : '#1d67c6', dashArray: '10 8', weight: 4, opacity: 0.9 }}
                     positions={[hazardDemoData.userLocation.position, selectedArea.position]}
                   />
                 )}
@@ -289,23 +365,24 @@ export default function HazardDemo() {
 
               <button
                 aria-describedby="emergency-assistance-status"
-                className={`hazard-demo-emergency-action${emergencyNotified ? ' hazard-demo-emergency-action--notified' : ''}`}
-                disabled={!emergencyAvailable || emergencyNotified}
-                onClick={() => setEmergencyNotified(true)}
+                className={`hazard-demo-emergency-action${assistanceConfirmed ? ' hazard-demo-emergency-action--notified' : ''}`}
+                disabled={!emergencyAvailable || assistanceConfirmed}
+                onClick={handleEmergencyRequest}
                 type="button"
               >
                 <Siren size={20} />
                 <span>
-                  <strong>{emergencyNotified ? 'GOVERNMENT HAS BEEN NOTIFIED' : 'EMERGENCY ASSISTANCE'}</strong>
+                  <strong>{assistanceConfirmed ? 'Officials have been notified' : 'Emergency assistance'}</strong>
                   <small aria-live="polite" id="emergency-assistance-status">
-                    {emergencyNotified
-                      ? 'Help request sent to the Government Control Room.'
+                    {assistanceConfirmed
+                      ? 'Your emergency request was sent to the Government Control Room.'
                       : emergencyAvailable
                         ? emergencyReason
                         : 'Available when no safe escape route remains.'}
                   </small>
                 </span>
               </button>
+              {assistanceConfirmed && <button className="hazard-demo-report-action" onClick={() => navigate('/hazard-demo/report', { state: { assistanceId } })} type="button">Demonstrate your situation</button>}
             </div>
           </div>
 
@@ -393,7 +470,7 @@ export default function HazardDemo() {
           </div>
 
           <div className="hazard-demo-relocation-grid">
-            {approvedRelocationAreas.map((area) => {
+            {displayedRelocationAreas.map((area) => {
               const availableSpaces = Math.round(area.capacity * (1 - area.occupancy / 100));
               const occupancyTone = getOccupancyTone(area.occupancy);
               const isSelected = selectedAreaId === area.id;
@@ -493,6 +570,8 @@ export default function HazardDemo() {
           </section>
         )}
       </main>
+
+      {showSafetyManual && <div className="hazard-demo-manual-backdrop" onClick={() => setShowSafetyManual(false)}><section aria-labelledby="safety-manual-title" className="hazard-demo-manual" onClick={(event) => event.stopPropagation()}><button aria-label="Close safety instructions manual" className="hazard-demo-manual__close" onClick={() => setShowSafetyManual(false)} type="button">×</button><p className="eyebrow">SAFETY INSTRUCTIONS MANUAL</p><h2 id="safety-manual-title">{hazardDemoData.type} · {hazardDemoData.name}</h2><p className="hazard-demo-manual__summary">Severity: <strong>{hazardDemoData.severity}</strong> · Recommended action: <strong>{hazardDemoData.recommendedAction}</strong></p><h3>What to do now</h3><ul>{hazardInstructions.map((instruction) => <li key={instruction}>{instruction}</li>)}</ul><h3>Response checklist</h3><div className="hazard-demo-manual__checklist">{hazardDemoPrecautions.map((group) => <div key={group.title}><strong>{group.title}</strong><ul>{group.items.map((item) => <li key={item}>{item}</li>)}</ul></div>)}</div></section></div>}
     </div>
   );
 }

@@ -73,6 +73,11 @@ export default function ControlRoomOverview() {
         centreCount: relocationAreas.length,
         awaitingApproval,
         nearCapacityCentres: nearCapacity,
+        peoplePresent: relocationAreas.reduce((sum, area) => sum + Number(area.peoplePresent ?? 0), 0),
+        availableSpaces: relocationAreas.reduce((sum, area) => sum + Number(area.available ?? 0), 0),
+        averageOccupancy: relocationAreas.length
+          ? Math.round(relocationAreas.reduce((sum, area) => sum + Number(area.occupancy ?? area.occupancyPercent ?? 0), 0) / relocationAreas.length)
+          : 0,
       };
     });
   }, [demoData]);
@@ -305,6 +310,14 @@ export default function ControlRoomOverview() {
                       <div>
                         <span>Relocation Centres</span>
                         <strong>{location.centreCount}</strong>
+                      </div>
+                      <div>
+                        <span>Current Occupancy</span>
+                        <strong>{location.averageOccupancy}%</strong>
+                      </div>
+                      <div>
+                        <span>Available Spaces</span>
+                        <strong>{location.availableSpaces.toLocaleString('en-IN')}</strong>
                       </div>
                       <div>
                         <span>Awaiting Approval</span>
