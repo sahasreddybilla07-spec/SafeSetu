@@ -222,6 +222,7 @@ export default function HazardDemo() {
     });
     setAssistanceId(request.id);
     setEmergencyNotified(true);
+    navigate('/hazard-demo/report', { state: { assistanceId: request.id } });
   }
 
   return (

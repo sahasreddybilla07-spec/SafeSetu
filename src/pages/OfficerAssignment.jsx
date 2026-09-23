@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Check, Plus, UserCog, X } from 'lucide-react';
+import { Check, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ControlRoomSidebar from '../components/ControlRoomSidebar';
 import { controlRoomLocations } from '../data/controlRoomLocations';
@@ -46,10 +46,10 @@ export default function OfficerAssignment() {
 
   const selectedLocation = controlRoomLocations.find((location) => location.hazardId === selectedHazardId) ?? null;
   const zones = useMemo(() => getAssignments(selectedHazardId), [selectedHazardId, refreshKey]);
-  const selectedZone = zones.find((zone) => zone.zoneId === selectedZoneId) ?? null;
-  const selectedOfficer = selectedZone?.officerId ? getOfficerById(selectedZone.officerId) : null;
+  const selectedZone = zones.find((zone) => zone.zoneId === selectedZoneId) ?? zones[0] ?? null;
 
   function openAssignModal(zone) {
+    if (!zone) return;
     setAssignForm({
       hazardId: selectedHazardId,
       zoneId: zone.zoneId,
@@ -88,6 +88,10 @@ export default function OfficerAssignment() {
     setRefreshKey((value) => value + 1);
   }
 
+  function selectHazardZone(zoneId) {
+    setSelectedZoneId(zoneId);
+  }
+
   return (
     <div className="crs-layout">
       <ControlRoomSidebar active="officers" />
@@ -121,6 +125,14 @@ export default function OfficerAssignment() {
                 <p>ZONE ASSIGNMENTS</p>
                 <h3>{selectedLocation?.location}</h3>
               </div>
+              <label className="oa-zone-select">
+                <span>Hazard Zone</span>
+                <select onChange={(event) => selectHazardZone(event.target.value)} value={selectedZone?.zoneId ?? ''}>
+                  {zones.map((zone) => (
+                    <option key={zone.zoneId} value={zone.zoneId}>{zone.zoneLabel}</option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             <div className="uwr-table-wrap">
@@ -130,7 +142,6 @@ export default function OfficerAssignment() {
                     <th>Zone</th>
                     <th>Field Officer</th>
                     <th>Status</th>
-                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -149,18 +160,6 @@ export default function OfficerAssignment() {
                             {zone.status === 'ASSIGNED' ? '🟢' : '🔴'} {zone.status}
                           </span>
                         </td>
-                        <td onClick={(event) => event.stopPropagation()}>
-                          <div className="uwr-actions">
-                            <button className="uwr-action-secondary" onClick={() => openAssignModal(zone)} type="button">
-                              {zone.status === 'ASSIGNED' ? 'REASSIGN' : 'ASSIGN'}
-                            </button>
-                            {zone.status === 'ASSIGNED' && (
-                              <button className="rcm-action-danger" onClick={() => handleRemove(zone.zoneId)} type="button">
-                                REMOVE
-                              </button>
-                            )}
-                          </div>
-                        </td>
                       </tr>
                     );
                   })}
@@ -168,39 +167,22 @@ export default function OfficerAssignment() {
               </table>
             </div>
 
-            <button
-              className="rcm-allot-button oa-assign-button"
-              onClick={() => openAssignModal({ zoneId: zones[0]?.zoneId, officerId: null, assignmentType: null, duration: null })}
-              type="button"
-            >
-              <Plus size={15} /> ASSIGN OFFICER
-            </button>
-          </section>
-
-          <section className="lcc-panel oa-details-panel">
-            <div className="lcc-panel__heading">
-              <p>FIELD OFFICER</p>
-              <h3>Officer details</h3>
-            </div>
-
-            {selectedZone && selectedOfficer ? (
-              <div className="oa-officer-card">
-                <div className="oa-officer-card__avatar"><UserCog size={22} /></div>
-                <h4>{selectedOfficer.name}</h4>
-                <dl>
-                  <div><dt>Officer ID</dt><dd>{selectedOfficer.id.toUpperCase()}</dd></div>
-                  <div><dt>Current Zone</dt><dd>{selectedZone.zoneLabel}</dd></div>
-                  <div><dt>Disaster</dt><dd>{selectedLocation?.location}</dd></div>
-                  <div><dt>Role</dt><dd>{selectedZone.assignmentType}</dd></div>
-                  <div><dt>Status</dt><dd>🟢 ACTIVE</dd></div>
-                  <div><dt>Contact</dt><dd>{selectedOfficer.contact}</dd></div>
-                  <div><dt>Last Updated</dt><dd>{selectedZone.lastUpdated ? new Date(selectedZone.lastUpdated).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }) : 'Just now'}</dd></div>
-                  <div><dt>Current Task</dt><dd>{selectedZone.currentTask}</dd></div>
-                </dl>
+            <div className="oa-selected-zone">
+              <div>
+                <span>Selected hazard zone</span>
+                <strong>{selectedZone?.zoneLabel ?? 'No hazard zones available'}</strong>
               </div>
-            ) : (
-              <div className="empty-state">Select an assigned zone to view field officer details.</div>
-            )}
+              <div className="uwr-actions">
+                <button className="rcm-allot-button oa-assign-button" disabled={!selectedZone} onClick={() => openAssignModal(selectedZone)} type="button">
+                  <Plus size={15} /> {selectedZone?.status === 'ASSIGNED' ? 'REASSIGN OFFICER' : 'ASSIGN OFFICER'}
+                </button>
+                {selectedZone?.status === 'ASSIGNED' && (
+                  <button className="rcm-action-danger" onClick={() => handleRemove(selectedZone.zoneId)} type="button">
+                    REMOVE ASSIGNMENT
+                  </button>
+                )}
+              </div>
+            </div>
           </section>
         </div>
       </main>
@@ -226,34 +208,6 @@ export default function OfficerAssignment() {
                 >
                   {officers.map((officer) => (
                     <option key={officer.id} value={officer.id}>{officer.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="uwr-field">
-                <span>Select Disaster Location</span>
-                <select
-                  onChange={(event) => {
-                    const hazardId = event.target.value;
-                    const nextZones = getAssignments(hazardId);
-                    setAssignForm((current) => ({ ...current, hazardId, zoneId: nextZones[0]?.zoneId ?? '' }));
-                  }}
-                  value={assignForm.hazardId}
-                >
-                  {controlRoomLocations.map((location) => (
-                    <option key={location.hazardId} value={location.hazardId}>{location.location}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="uwr-field">
-                <span>Select Zone</span>
-                <select
-                  onChange={(event) => setAssignForm((current) => ({ ...current, zoneId: event.target.value }))}
-                  value={assignForm.zoneId}
-                >
-                  {getAssignments(assignForm.hazardId).map((zone) => (
-                    <option key={zone.zoneId} value={zone.zoneId}>{zone.zoneLabel}</option>
                   ))}
                 </select>
               </label>

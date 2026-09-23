@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Boxes,
   Home,
   History,
@@ -34,6 +35,14 @@ export default function ControlRoomSidebar({ active, role: roleProp }) {
     navigate('/government/login', { replace: true });
   }
 
+  function handleBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/', { replace: true });
+    }
+  }
+
   return (
     <aside className="crs-sidebar" aria-label="Control Room navigation">
       <div className="crs-sidebar__brand">
@@ -62,6 +71,10 @@ export default function ControlRoomSidebar({ active, role: roleProp }) {
       </nav>
 
       <div className="crs-sidebar__footer">
+        <button className="crs-sidebar__footer-item crs-sidebar__footer-item--back" onClick={handleBack} type="button">
+          <ArrowLeft size={14} />
+          Back
+        </button>
         <button className="crs-sidebar__footer-item" onClick={() => navigate('/')} type="button">
           <Home size={14} />
           Home

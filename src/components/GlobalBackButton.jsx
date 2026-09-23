@@ -19,7 +19,7 @@ export default function GlobalBackButton() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  if (pathname === '/' || hasLocalBack(pathname)) return null;
+  if (pathname === '/' || pathname.startsWith('/government/') || hasLocalBack(pathname)) return null;
 
   function handleBack() {
     if (window.history.length > 1) {
