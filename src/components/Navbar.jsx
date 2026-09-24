@@ -1,17 +1,19 @@
 import { Bell, Info, PhoneCall, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function Navbar() {
   const { pathname, hash } = useLocation();
+  const { t } = useLanguage();
   const [publicDialog, setPublicDialog] = useState(null);
   const isAdmin = pathname.startsWith('/admin');
 
   if (isAdmin) {
     const adminLinks = [
-      { label: 'Dashboard', to: '/admin', end: true },
-      { label: 'Hazard Map', to: '/admin/map' },
-      { label: 'Control Room', to: '/admin/control-room' },
+      { label: t('Dashboard'), to: '/admin', end: true },
+      { label: t('Hazard Map'), to: '/admin/map' },
+      { label: t('Control Room'), to: '/admin/control-room' },
     ];
 
     return (
@@ -33,7 +35,7 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="admin-navbar__right">
-          <span className="admin-navbar__status"><ShieldCheck size={14} /> SYSTEM OPERATIONAL</span>
+          <span className="admin-navbar__status"><ShieldCheck size={14} /> {t('SYSTEM OPERATIONAL')}</span>
           <span className="admin-navbar__official"><Bell size={15} /><span><strong>R. Sharma</strong><small>District Collector</small></span></span>
         </div>
       </header>
@@ -62,12 +64,12 @@ export default function Navbar() {
           </Link>
         ))}
         <button className="navbar__utility" onClick={() => setPublicDialog('about')} type="button">
-          <Info size={16} aria-hidden="true" /> About Us
+          <Info size={16} aria-hidden="true" /> {t('About Us')}
         </button>
         <button className="navbar__utility navbar__utility--contact" onClick={() => setPublicDialog('contact')} type="button">
-          <PhoneCall size={16} aria-hidden="true" /> Contact Us
+          <PhoneCall size={16} aria-hidden="true" /> {t('Contact Us')}
         </button>
-        <Link className="navbar__login" to="/login">Login</Link>
+        <Link className="navbar__login" to="/login">{t('Login')}</Link>
       </nav>
       {publicDialog && (
         <div className="public-info-backdrop" onClick={() => setPublicDialog(null)} role="presentation">

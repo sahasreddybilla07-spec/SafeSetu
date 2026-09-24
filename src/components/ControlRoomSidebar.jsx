@@ -1,10 +1,9 @@
 import {
-  AlertTriangle,
+  ArrowLeft,
   Boxes,
-  Globe,
+  Home,
   History,
   LogOut,
-  MapPinned,
   MessagesSquare,
   ShieldAlert,
   TentTree,
@@ -12,27 +11,36 @@ import {
   Users,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
+import { clearGovernmentSession, getCurrentGovernmentRole, getRoleConfig } from '../utils/rbac';
 
 const NAV_ITEMS = [
   { key: 'overview', label: 'Overview', icon: ShieldAlert, path: '/government/control-room' },
-  { key: 'hazards', label: 'Active Hazards', icon: AlertTriangle, path: '/government/control-room' },
-  { key: 'field-ops', label: 'Field Operations', icon: MapPinned, path: '/field-officer' },
   { key: 'officers', label: 'Officer Assignment', icon: UserCog, path: '/government/control-room/officers' },
-  { key: 'centres', label: 'Relocation Centres', icon: TentTree, path: '/government/control-room' },
-  { key: 'unsafe', label: 'People Without Safe Routes', icon: Users, path: '/government/control-room' },
+  { key: 'centres', label: 'Relocation Centres', icon: TentTree, path: '/government/control-room/relocation-centres' },
+  { key: 'unsafe', label: 'People Without Safe Routes', icon: Users, path: '/government/control-room/unsafe-routes' },
   { key: 'comms', label: 'Communication', icon: MessagesSquare, path: '/government/control-room/communication' },
-  { key: 'resources', label: 'Resources', icon: Boxes, path: '/government/control-room' },
-  { key: 'map', label: 'Map', icon: MapPinned, path: '/government/control-room' },
-  { key: 'history', label: 'Incident History', icon: History, path: '/government/control-room' },
+  { key: 'resources', label: 'Resources', icon: Boxes, path: '/government/control-room/resources' },
+  { key: 'history', label: 'Incident History', icon: History, path: '/government/control-room/incident-history' },
 ];
 
-export default function ControlRoomSidebar({ active }) {
+export default function ControlRoomSidebar({ active, role: roleProp }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const role = roleProp ?? getCurrentGovernmentRole();
+  const roleConfig = getRoleConfig(role);
 
   function handleLogout() {
-    localStorage.removeItem('safesetu-gov-auth');
-    localStorage.removeItem('safesetu-gov-official');
+    clearGovernmentSession();
     navigate('/government/login', { replace: true });
+  }
+
+  function handleBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/', { replace: true });
+    }
   }
 
   return (
@@ -46,7 +54,7 @@ export default function ControlRoomSidebar({ active }) {
       </div>
 
       <nav className="crs-sidebar__nav">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !roleConfig || roleConfig.allowedNav.includes(item.key)).map((item) => {
           const Icon = item.icon;
           return (
             <button
@@ -56,20 +64,24 @@ export default function ControlRoomSidebar({ active }) {
               type="button"
             >
               <Icon size={15} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </button>
           );
         })}
       </nav>
 
       <div className="crs-sidebar__footer">
+        <button className="crs-sidebar__footer-item crs-sidebar__footer-item--back" onClick={handleBack} type="button">
+          <ArrowLeft size={14} />
+          Back
+        </button>
         <button className="crs-sidebar__footer-item" onClick={() => navigate('/')} type="button">
-          <Globe size={14} />
-          Public Platform
+          <Home size={14} />
+          Home
         </button>
         <button className="crs-sidebar__footer-item crs-sidebar__footer-item--logout" onClick={handleLogout} type="button">
           <LogOut size={14} />
-          Logout
+          {t('Logout')}
         </button>
       </div>
     </aside>

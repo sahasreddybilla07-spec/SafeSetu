@@ -12,6 +12,7 @@ export const RESOURCE_DEFINITIONS = [
   { key: 'generators', label: 'Generators', unit: '' },
   { key: 'fuel', label: 'Fuel', unit: 'L' },
   { key: 'medicalKitsResource', label: 'Medical Kits', unit: '' },
+  { key: 'oxygenTanks', label: 'Oxygen Tanks', unit: '' },
   { key: 'power', label: 'Power Backup', unit: 'kW' },
   { key: 'communication', label: 'Communication Equipment', unit: 'sets' },
 ];
@@ -61,6 +62,7 @@ function buildDefaultOperations(area) {
     generators: Math.max(1, Math.ceil(capacity / 500)),
     fuel: Math.max(50, Math.ceil(capacity / 500) * 60),
     medicalKitsResource: Math.max(10, Math.ceil(population / 15)),
+    oxygenTanks: Math.max(4, Math.ceil(population / 80)),
     power: Math.max(5, Math.ceil(capacity / 50)),
     communication: Math.max(2, Math.ceil(capacity / 200)),
   };
@@ -146,6 +148,43 @@ function updateOperations(centreId, updater) {
   store[centreId] = next;
   saveStore(store);
   return next;
+}
+
+export function updateCentreInventory(centreId, updates) {
+  return updateOperations(centreId, (current) => ({
+    ...current,
+    medical: {
+      ...current.medical,
+      totalBeds: Math.max(0, Number(updates.totalBeds ?? current.medical.totalBeds)),
+      occupiedBeds: Math.min(
+        Math.max(0, Number(updates.totalBeds ?? current.medical.totalBeds)),
+        Math.max(0, Number(updates.occupiedBeds ?? current.medical.occupiedBeds)),
+      ),
+    },
+    food: { ...current.food, availableStock: Math.max(0, Number(updates.food ?? current.food.availableStock)) },
+    water: { ...current.water, availableStock: Math.max(0, Number(updates.water ?? current.water.availableStock)) },
+    resources: current.resources.map((resource) => updates[resource.key] === undefined
+      ? resource
+      : {
+          ...resource,
+          available: Math.max(0, Number(updates[resource.key])),
+          status: resourceStatus(Math.max(0, Number(updates[resource.key])), resource.required),
+        }),
+  }));
+}
+
+export function requestCentreSupplies(centreId, request) {
+  return updateOperations(centreId, (current) => ({
+    ...current,
+    requestLog: [{ type: 'DISTRICT SUPPLY REQUEST', status: 'REQUESTED', ...request, time: new Date().toISOString() }, ...(current.requestLog ?? [])].slice(0, 10),
+  }));
+}
+
+export function updateSupplyRequestStatus(centreId, requestTime, status) {
+  return updateOperations(centreId, (current) => ({
+    ...current,
+    requestLog: (current.requestLog ?? []).map((request) => request.time === requestTime ? { ...request, status } : request),
+  }));
 }
 
 export function addResourceStock(centreId, resourceKey, amount) {

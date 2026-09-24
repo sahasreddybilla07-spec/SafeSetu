@@ -1,16 +1,13 @@
-import { useState } from 'react';
-import { ArrowRight, Building2, LockKeyhole, ShieldCheck, UserRoundCog } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Building2, Globe2, LockKeyhole, MapPinned, ShieldCheck, UserRoundCog } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
+import { ROLE_CONFIG, clearGovernmentSession } from '../utils/rbac';
 
 const DEMO_ACCOUNTS = {
-  government: {
-    label: 'Government Official',
-    route: '/government/control-room',
-    officialId: 'control-room-admin',
-    password: 'safesetu123',
-    description: 'Control Room Administrator access',
-    icon: <Building2 size={20} />,
-  },
+  national: { ...ROLE_CONFIG.national, icon: <Globe2 size={20} /> },
+  state: { ...ROLE_CONFIG.state, icon: <Building2 size={20} /> },
+  district: { ...ROLE_CONFIG.district, icon: <MapPinned size={20} /> },
   fieldOfficer: {
     label: 'Field Officer',
     route: '/field-officer',
@@ -35,15 +32,30 @@ function matchesDemoLogin(role, officialId, password) {
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [selectedRole, setSelectedRole] = useState(null);
+  const [selectedScope, setSelectedScope] = useState(null);
   const [officialId, setOfficialId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const savedRole = localStorage.getItem('safesetu-gov-role');
+    if (localStorage.getItem('safesetu-gov-auth') === 'true' && DEMO_ACCOUNTS[savedRole]) {
+      navigate(DEMO_ACCOUNTS[savedRole].dashboardPath, { replace: true });
+      return;
+    }
+
+    if (localStorage.getItem('safesetu-field-officer-auth') === 'true') {
+      navigate('/field-officer', { replace: true });
+    }
+  }, [navigate]);
+
   function handleSubmit(event) {
     event.preventDefault();
+    const loginRole = selectedRole === 'monitoringOfficer' ? selectedScope : selectedRole;
 
-    if (!selectedRole) {
+    if (!loginRole) {
       setError('Please choose the login type first.');
       return;
     }
@@ -53,19 +65,23 @@ export default function Login() {
       return;
     }
 
-    if (!matchesDemoLogin(selectedRole, officialId, password)) {
-      const account = DEMO_ACCOUNTS[selectedRole];
+    if (!matchesDemoLogin(loginRole, officialId, password)) {
+      const account = DEMO_ACCOUNTS[loginRole];
       setError(`Demo sign-in failed. Use ${account.officialId} / ${account.password}.`);
       return;
     }
 
-    if (selectedRole === 'government') {
+    if (loginRole !== 'fieldOfficer') {
+      localStorage.removeItem('safesetu-field-officer-auth');
+      localStorage.removeItem('safesetu-field-officer-name');
       localStorage.setItem('safesetu-gov-auth', 'true');
-      localStorage.setItem('safesetu-gov-official', 'Control Room Administrator');
-      navigate('/government/control-room', { replace: true });
+      localStorage.setItem('safesetu-gov-role', loginRole);
+      localStorage.setItem('safesetu-gov-official', DEMO_ACCOUNTS[loginRole].label);
+      navigate(DEMO_ACCOUNTS[loginRole].dashboardPath, { replace: true });
       return;
     }
 
+  clearGovernmentSession();
     localStorage.setItem('safesetu-field-officer-auth', 'true');
     localStorage.setItem('safesetu-field-officer-name', 'Field Officer');
     navigate('/field-officer', { replace: true });
@@ -79,13 +95,13 @@ export default function Login() {
           <span>SAFESETU</span>
         </Link>
         <div className="login-page__identity">
-          <p>National Disaster Management</p>
-          <h1>Secure Access Portal</h1>
-          <span>Choose your role to continue to the relevant dashboard</span>
+          <p>{t('National Disaster Management')}</p>
+          <h1>{t('Secure Access Portal')}</h1>
+          <span>{t('Choose your role to continue to the relevant dashboard')}</span>
         </div>
         <div className="login-page__notice">
           <ShieldCheck size={20} />
-          <p>Secure operational access for authorised disaster-management personnel.</p>
+          <p>{t('Secure operational access for authorised disaster-management personnel.')}</p>
         </div>
       </section>
 
@@ -94,68 +110,86 @@ export default function Login() {
           <div className="login-form__heading">
             <span className="login-form__icon"><LockKeyhole size={20} /></span>
             <div>
-              <p>Restricted access</p>
-              <h2 id="login-title">{selectedRole ? `${DEMO_ACCOUNTS[selectedRole].label} Login` : 'Select Login Type'}</h2>
+              <p>{t('Restricted access')}</p>
+              <h2 id="login-title">{selectedRole === 'monitoringOfficer' && !selectedScope ? 'Select Monitoring Level' : selectedRole ? `${t(DEMO_ACCOUNTS[selectedRole === 'monitoringOfficer' ? selectedScope : selectedRole].label)} ${t('Login')}` : t('Select Login Type')}</h2>
             </div>
           </div>
 
           {!selectedRole && (
             <div className="login-role-grid" aria-label="Choose a login role">
-              {Object.entries(DEMO_ACCOUNTS).map(([role, details]) => (
+              {[
+                ['monitoringOfficer', { label: 'Monitoring Officer', description: 'Choose State or District access level', icon: <Globe2 size={20} /> }],
+                ['fieldOfficer', DEMO_ACCOUNTS.fieldOfficer],
+              ].map(([role, details]) => (
                 <button
                   className="login-role-card"
                   key={role}
                   onClick={() => {
                     setSelectedRole(role);
+                    setSelectedScope(null);
                     setError('');
                   }}
                   type="button"
                 >
                   <span className="login-role-card__icon">{details.icon}</span>
-                  <strong>{details.label}</strong>
-                  <small>{details.description}</small>
+                  <strong>{t(details.label)}</strong>
+                  <small>{t(details.description)}</small>
                 </button>
               ))}
             </div>
           )}
 
-          {selectedRole && (
+          {selectedRole === 'monitoringOfficer' && !selectedScope && (
+            <div className="login-scope-grid" aria-label="Choose monitoring level">
+              {['state', 'district'].map((scope) => {
+                const details = DEMO_ACCOUNTS[scope];
+                return (
+                  <button className="login-role-card" key={scope} onClick={() => { setSelectedScope(scope); setError(''); }} type="button">
+                    <strong>{scope === 'state' ? 'State login' : 'District login'}</strong>
+                    <small>{details.description}</small>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {selectedRole && (selectedRole !== 'monitoringOfficer' || selectedScope) && (
             <>
-              <label htmlFor="officialId">Official ID</label>
+              <label htmlFor="officialId">{t('Official ID')}</label>
               <input
                 id="officialId"
                 value={officialId}
                 onChange={(event) => setOfficialId(event.target.value)}
-                placeholder="Enter official ID"
+                placeholder={t('Enter official ID')}
               />
 
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">{t('Password')}</label>
               <input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                placeholder="Enter your password"
+                placeholder={t('Enter your password')}
               />
 
               {error && <p className="login-form__error" role="alert">{error}</p>}
 
               <div className="login-demo-credentials">
-                <span>Demo credentials</span>
-                <strong>{DEMO_ACCOUNTS[selectedRole].officialId} / {DEMO_ACCOUNTS[selectedRole].password}</strong>
+                <span>{t('Demo credentials')}</span>
+                <strong>{DEMO_ACCOUNTS[selectedRole === 'monitoringOfficer' ? selectedScope : selectedRole].officialId} / {DEMO_ACCOUNTS[selectedRole === 'monitoringOfficer' ? selectedScope : selectedRole].password}</strong>
               </div>
 
               <button className="login-form__submit" type="submit">
-                <span>SIGN IN</span><ArrowRight size={18} />
+                <span>{t('SIGN IN')}</span><ArrowRight size={18} />
               </button>
 
-              <button className="login-form__back" onClick={() => setSelectedRole(null)} type="button">
-                Choose another role
+              <button className="login-form__back" onClick={() => selectedRole === 'monitoringOfficer' && selectedScope ? setSelectedScope(null) : setSelectedRole(null)} type="button">
+                {selectedRole === 'monitoringOfficer' && selectedScope ? 'Choose another monitoring level' : t('Choose another role')}
               </button>
             </>
           )}
 
-          {selectedRole && <p className="login-form__authorised"><Building2 size={15} /> Authorised {DEMO_ACCOUNTS[selectedRole].label} Access</p>}
+          {selectedRole && (selectedRole !== 'monitoringOfficer' || selectedScope) && <p className="login-form__authorised"><Building2 size={15} /> {t('Authorised')} {t(DEMO_ACCOUNTS[selectedRole === 'monitoringOfficer' ? selectedScope : selectedRole].label)} {t('Access')}</p>}
         </form>
       </section>
     </main>
