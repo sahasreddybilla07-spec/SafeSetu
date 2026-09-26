@@ -9,10 +9,24 @@ import AlertCard from '../components/AlertCard';
 import MapLegend from '../components/MapLegend';
 import Navbar from '../components/Navbar';
 import ShelterCard from '../components/ShelterCard';
-import { incidents, indiaCenter, indiaZoom, severityRank, shelters } from '../data/indiaIncidents';
+import { allSafeAreas, incidents, indiaCenter, indiaZoom, severityRank, shelters } from '../data/indiaIncidents';
+import { hazardDemoData } from '../data/hazardDemo';
+import HazardRipple from '../map/HazardRipple';
+import SafeAreaDots from '../map/SafeAreaDots';
+import StateHazardOverlay from '../map/StateHazardOverlay';
 
 const toneColor = { critical: '#dc2626', high: '#f97316', moderate: '#eab308' };
 const hazardIcons = { Flood: Waves, Cyclone: Wind, Landslide: Mountain, Earthquake: Activity, Heatwave: SunMedium, Tsunami: Waves, Wildfire: Flame, 'Heavy Rainfall': CloudRain };
+const boundaryStateNames = { 'Andaman & Nicobar': 'Andaman and Nicobar', 'Delhi NCR': 'Delhi', Odisha: 'Orissa', Uttarakhand: 'Uttaranchal' };
+const hazardStateNames = new Set(incidents.map((incident) => boundaryStateNames[incident.region] ?? incident.region));
+const approvedOdishaSafeAreas = hazardDemoData.relocationAreas
+  .filter((area) => area.approvalStatus === 'APPROVED')
+  .map((area) => ({ ...area, capacity: `${area.capacity.toLocaleString('en-IN')} people`, status: 'AVAILABLE' }));
+const publicSafeAreas = [
+  ...allSafeAreas.filter((area) => hazardStateNames.has(boundaryStateNames[area.state] ?? area.state) && area.state !== 'Odisha'),
+  ...shelters.filter((shelter) => shelter.incidentId !== 'odisha-cyclone'),
+  ...approvedOdishaSafeAreas,
+];
 
 function hazardIcon(incident, isSelected) {
   const HazardIcon = hazardIcons[incident.hazard] ?? Activity;
@@ -81,7 +95,7 @@ export default function PublicMap() {
 
   function closeDrawer() { navigate('/#hazard-map', { replace: true }); }
   function focusIncident(id) { const incident = incidents.find((item) => item.id === id); if (!incident) return; setSelectedIncidentId(id); setSelectedShelterId(null); setFocus({ center: incident.center, zoom: incident.zoom }); }
-  function focusShelter(id) { const shelter = shelters.find((item) => item.id === id); if (!shelter) return; setSelectedShelterId(id); setSelectedIncidentId(null); setFocus({ center: shelter.position, zoom: 7.5 }); }
+  function focusShelter(id) { const shelter = allSafeAreas.find((item) => item.id === id) ?? shelters.find((item) => item.id === id); if (!shelter) return; setSelectedShelterId(id); setSelectedIncidentId(null); setFocus({ center: shelter.position, zoom: 7.5 }); }
   function selectFromDrawer(kind, id) { kind === 'incident' ? focusIncident(id) : focusShelter(id); closeDrawer(); }
 
   return (
@@ -92,9 +106,11 @@ export default function PublicMap() {
           <MapContainer center={indiaCenter} className="hazard-map" scrollWheelZoom zoom={indiaZoom}>
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             <FlyToController focus={focus} />
-            {incidents.map((incident) => <Circle center={incident.center} key={`zone-${incident.id}`} pathOptions={{ color: toneColor[incident.tone], fillColor: toneColor[incident.tone], fillOpacity: selectedIncidentId === incident.id ? 0.25 : 0.1, weight: selectedIncidentId === incident.id ? 2.4 : 1.25 }} radius={incident.zoneRadius} />)}
+            <StateHazardOverlay incidents={incidents} />
+            {incidents.map((incident) => <Circle center={incident.center} key={`zone-${incident.id}`} pathOptions={{ color: toneColor[incident.tone], fillColor: toneColor[incident.tone], fillOpacity: selectedIncidentId === incident.id ? 0.25 : 0.22, weight: selectedIncidentId === incident.id ? 2.4 : 2 }} radius={incident.zoneRadius} />)}
+            {incidents.map((incident) => <HazardRipple center={incident.center} color={toneColor[incident.tone]} key={`ripple-${incident.id}`} radius={incident.zoneRadius} />)}
             {incidents.map((incident) => <Marker eventHandlers={{ click: () => focusIncident(incident.id) }} icon={hazardIcon(incident, selectedIncidentId === incident.id)} key={incident.id} position={incident.center}><Popup><strong>{incident.hazard}</strong><br />{incident.location}<br />{incident.severity} · {incident.populationAtRisk} people at risk<br />Action: {incident.action}</Popup></Marker>)}
-            {shelters.map((shelter) => <CircleMarker center={shelter.position} eventHandlers={{ click: () => focusShelter(shelter.id) }} key={shelter.id} pathOptions={{ color: '#ffffff', fillColor: '#0f9f6e', fillOpacity: 1, weight: selectedShelterId === shelter.id ? 4 : 2.5 }} radius={selectedShelterId === shelter.id ? 11 : 8}><Popup><strong>Emergency shelter</strong><br />{shelter.name}<br />Capacity: {shelter.capacity}<br />Status: {shelter.status}</Popup></CircleMarker>)}
+            <SafeAreaDots areas={publicSafeAreas} onSelect={focusShelter} />
           </MapContainer>
 
           <MapLegend collapsible showHazardIcon />
@@ -102,14 +118,14 @@ export default function PublicMap() {
           <IncidentDetails incident={selectedIncident} onClose={() => setSelectedIncidentId(null)} />
           <aside className="map-overlay-stack" aria-label="Map advisories and safe areas">
             <button className="map-scenario-cta" onClick={() => navigate('/hazard-demo')} type="button">View hazard scenario</button>
-            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={shelters} />
+            <SafeAreaOverlay onSelect={focusShelter} onViewAll={() => navigate('/#safe-areas')} visibleShelters={publicSafeAreas} />
             <AlertsOverlay alerts={sortedAlerts.slice(0, 3)} onSelect={focusIncident} onViewAll={() => navigate('/#alerts')} />
           </aside>
         </section>
       </main>
 
       {drawer === 'alerts' && <><div className="public-drawer-backdrop" onClick={closeDrawer} /><aside className="public-drawer" aria-labelledby="alerts-drawer-title"><div className="public-drawer__header"><div><p className="eyebrow">Illustrative public advisories</p><h2 id="alerts-drawer-title">All Alerts</h2></div><button aria-label="Close alerts" onClick={closeDrawer} type="button"><X size={18} /></button></div><div className="public-drawer__content">{sortedAlerts.map((incident) => <AlertCard incident={incident} key={incident.id} onSelect={() => selectFromDrawer('incident', incident.id)} />)}</div></aside></>}
-      {drawer === 'safe-areas' && <><div className="public-drawer-backdrop" onClick={closeDrawer} /><aside className="public-drawer" aria-labelledby="safe-areas-drawer-title"><div className="public-drawer__header"><div><p className="eyebrow">Illustrative preparedness network</p><h2 id="safe-areas-drawer-title">Safe Areas / Evacuation Centres</h2></div><button aria-label="Close safe areas" onClick={closeDrawer} type="button"><X size={18} /></button></div><div className="public-drawer__content">{shelters.map((shelter) => <ShelterCard key={shelter.id} shelter={shelter} onSelect={() => selectFromDrawer('shelter', shelter.id)} />)}</div></aside></>}
+      {drawer === 'safe-areas' && <><div className="public-drawer-backdrop" onClick={closeDrawer} /><aside className="public-drawer" aria-labelledby="safe-areas-drawer-title"><div className="public-drawer__header"><div><p className="eyebrow">Illustrative preparedness network</p><h2 id="safe-areas-drawer-title">Safe Areas / Evacuation Centres</h2></div><button aria-label="Close safe areas" onClick={closeDrawer} type="button"><X size={18} /></button></div><div className="public-drawer__content">{publicSafeAreas.map((shelter) => <ShelterCard key={shelter.id} shelter={shelter} onSelect={() => selectFromDrawer('shelter', shelter.id)} />)}</div></aside></>}
     </div>
   );
 }

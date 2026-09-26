@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getPlanById, readIssuedPlan, readSafetyConfirmed, saveSafetyConfirmed, scenario } from '../data/emergencyScenario';
+import RoadRoute from '../map/RoadRoute';
 
 const startIcon = L.divIcon({
   className: 'hazard-marker-wrapper',
@@ -16,7 +17,7 @@ const startIcon = L.divIcon({
 const flowSteps = [
   'Government / Disaster Management Authority',
   'Registered Safe Locations',
-  'SafeSetu Database',
+  'SAHAS Database',
   'ML + GIS Analysis',
   'Which registered locations are suitable for this particular hazard?',
   'Government Control Room',
@@ -43,7 +44,7 @@ function NoActivePlan() {
       <header className="emergency-header">
         <div className="emergency-header__brand">
           <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
-          <strong>SAFESETU</strong>
+          <strong>SAHAS</strong>
           <span>EMERGENCY ASSISTANCE</span>
         </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
@@ -93,7 +94,7 @@ export default function PublicEmergency() {
       <header className="emergency-header">
         <div className="emergency-header__brand">
           <img alt="" aria-hidden="true" className="emergency-header__logo" src="/safesetu-crest.png" />
-          <strong>SAFESETU</strong>
+          <strong>SAHAS</strong>
           <span>EMERGENCY ASSISTANCE</span>
         </div>
         <span className="emergency-header__tag">DEMO CITIZEN VIEW</span>
@@ -113,7 +114,7 @@ export default function PublicEmergency() {
           <section className="emergency-card emergency-card--message">
             <h1>YOU ARE IN AN AFFECTED AREA</h1>
             <p className="emergency-card__lead">EVACUATION IS REQUIRED</p>
-            <p>SAFESETU has an officer-approved evacuation plan for your area.</p>
+            <p>SAHAS has an officer-approved evacuation plan for your area.</p>
           </section>
 
           <section className="emergency-card" aria-label="Your evacuation plan">
@@ -132,7 +133,7 @@ export default function PublicEmergency() {
             <h2>YOU ARE NOT ALONE</h2>
             <p>Your evacuation route and shelter have been identified based on the current emergency scenario.</p>
             <p>Follow the recommended route and proceed to the assigned shelter.</p>
-            <p>SAFESETU is designed to help you reach a designated safe area safely.</p>
+            <p>SAHAS is designed to help you reach a designated safe area safely.</p>
           </section>
 
           <section className="emergency-card" aria-label="Before you leave checklist">
@@ -183,21 +184,21 @@ export default function PublicEmergency() {
                 <Marker icon={startIcon} position={scenario.affectedZone.center}>
                   <Popup><strong>Affected Area</strong><br />{scenario.location}</Popup>
                 </Marker>
-                <Polyline pathOptions={{ color: '#155ca3', dashArray: '8 8', opacity: 0.9, weight: 4 }} positions={plan.routePositions} />
+                <RoadRoute end={plan.shelterPosition} start={scenario.affectedZone.center} />
                 <CircleMarker center={plan.shelterPosition} pathOptions={{ color: '#155ca3', fillColor: '#ffffff', fillOpacity: 1, weight: 3 }} radius={9}>
                   <Popup><strong>{plan.destination}</strong><br />Capacity: {plan.capacity}</Popup>
                 </CircleMarker>
               </MapContainer>
               <div className="emergency-map-legend">
                 <span><i className="emergency-map-legend__dot emergency-map-legend__dot--red" /> Affected Area</span>
-                <span><i className="emergency-map-legend__dot emergency-map-legend__dot--blue" /> Evacuation Route</span>
+                <span><i className="emergency-map-legend__dot emergency-map-legend__dot--green" /> Evacuation Route</span>
                 <span><i className="emergency-map-legend__dot emergency-map-legend__dot--shelter" /> Assigned Shelter</span>
               </div>
             </div>
           </section>
 
           <section className="emergency-card" aria-label="Response flow">
-            <h2>SAFESETU RESPONSE FLOW</h2>
+            <h2>SAHAS RESPONSE FLOW</h2>
             <EmergencyFlow activeIndex={activeStepIndex} />
           </section>
         </div>

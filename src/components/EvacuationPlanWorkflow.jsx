@@ -55,7 +55,7 @@ export default function EvacuationPlanWorkflow() {
               <div><dt>Capacity</dt><dd>{plan.capacity}</dd></div>
               <div><dt>Route Risk</dt><dd className={`evac-risk-pill evac-risk-pill--${plan.riskTone}`}>{plan.risk}</dd></div>
             </dl>
-            {plan.recommendedReason && <p className="evac-plan-card__reason">SAFESETU RECOMMENDED — {plan.recommendedReason}</p>}
+            {plan.recommendedReason && <p className="evac-plan-card__reason">SAHAS RECOMMENDED — {plan.recommendedReason}</p>}
             <button disabled={issued} onClick={() => selectPlan(plan.id)} type="button">
               {selectedPlanId === plan.id ? 'SELECTED' : 'SELECT PLAN'}
             </button>

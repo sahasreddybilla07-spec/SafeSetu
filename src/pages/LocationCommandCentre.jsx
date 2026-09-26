@@ -14,6 +14,10 @@ import L from 'leaflet';
 import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getControlRoomLocation } from '../data/controlRoomLocations';
+import HazardRipple from '../map/HazardRipple';
+import RoadRoute from '../map/RoadRoute';
+import SafeAreaDots from '../map/SafeAreaDots';
+import UserLocationMarker from '../map/UserLocationMarker';
 import {
   applyLocationDecision,
   createRelocationCentre,
@@ -545,7 +549,7 @@ export default function LocationCommandCentre() {
         <button className="lcc-back" onClick={() => navigate('/government/control-room')} type="button">
           <ArrowLeft size={16} /> All Active Hazard Locations
         </button>
-        <span className="lcc-topbar__eyebrow">SAFESETU · LOCATION COMMAND CENTRE</span>
+        <span className="lcc-topbar__eyebrow">SAHAS · LOCATION COMMAND CENTRE</span>
       </header>
 
       <section className="lcc-location-header">
@@ -674,6 +678,7 @@ export default function LocationCommandCentre() {
                   radius={hazard.hazardRadius}
                 />
               )}
+              <HazardRipple center={hazard.hazardCenter} color="#d9485f" radius={hazard.hazardRadius} />
 
               {activeLayers.highRiskZones && (
                 <Circle
@@ -690,6 +695,7 @@ export default function LocationCommandCentre() {
                   {hazard.name}
                 </Popup>
               </Marker>
+              {hazard.userLocation?.position && <UserLocationMarker label={hazard.userLocation.label} position={hazard.userLocation.position} />}
 
               {activeLayers.unsafeGroups && unsafeGroups.map((group) => (
                 <Marker
@@ -745,10 +751,7 @@ export default function LocationCommandCentre() {
               ))}
 
               {activeLayers.safeRoutes && hazard.userLocation?.position && primaryApprovedLocation && (
-                <Polyline
-                  pathOptions={{ color: '#1f9d63', weight: 3, dashArray: '6 6' }}
-                  positions={[hazard.userLocation.position, primaryApprovedLocation.position]}
-                />
+                <RoadRoute end={primaryApprovedLocation.position} start={hazard.userLocation.position} />
               )}
 
               {activeLayers.safeRoutes && focusedGroup && getCentreById(focusedGroup.nearestCentreId) && (

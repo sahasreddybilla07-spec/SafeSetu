@@ -5,7 +5,7 @@ import ControlRoomSidebar from '../components/ControlRoomSidebar';
 import { controlRoomLocations } from '../data/controlRoomLocations';
 import { getHazardDemoData } from '../data/hazardDemo';
 import { getRoleConfig, isGovernmentAuthenticated, hasPermission } from '../utils/rbac';
-import { getEmergencyAssistanceRequests } from '../data/emergencyAssistance';
+import { dispatchEmergencyHelp, getEmergencyAssistanceRequests } from '../data/emergencyAssistance';
 import { getCentreOperations, updateSupplyRequestStatus } from '../data/centreOperations';
 
 const ROLE_HEADINGS = {
@@ -20,6 +20,7 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
   const role = propRole ?? routeRole ?? localStorage.getItem('safesetu-gov-role');
   const config = getRoleConfig(role);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [priorityRequestId, setPriorityRequestId] = useState(null);
   const data = useMemo(() => getHazardDemoData(), [refreshKey]);
   const assistanceRequests = useMemo(() => getEmergencyAssistanceRequests(), [refreshKey]);
   useEffect(() => {
@@ -87,12 +88,18 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
     setRefreshKey((value) => value + 1);
   }
 
+  function handleDispatchHelp(request, priority) {
+    dispatchEmergencyHelp(request.id, priority);
+    setPriorityRequestId(null);
+    setRefreshKey((value) => value + 1);
+  }
+
   return (
     <div className="crs-layout">
       <ControlRoomSidebar active="overview" role={role} />
       <main className="crs-main cr-role-dashboard">
         <header className="cr-role-dashboard__header">
-          <div><p className="cr-overview__eyebrow">SAFESETU · {config.scopeLabel.toUpperCase()}</p><h1>{ROLE_HEADINGS[role]}</h1><p>{config.description}</p></div>
+          <div><p className="cr-overview__eyebrow">SAHAS · {config.scopeLabel.toUpperCase()}</p><h1>{ROLE_HEADINGS[role]}</h1><p>{config.description}</p></div>
           <span className="cr-role-dashboard__badge"><Globe2 size={15} /> {config.label}</span>
         </header>
 
@@ -105,7 +112,7 @@ export default function RoleDashboard({ routeRole: propRole } = {}) {
 
         {assistanceRequests.length > 0 && <section className="cr-assistance-alert" aria-live="polite"><Siren size={20} /><div><strong>Emergency assistance requested</strong><span>{assistanceRequests.filter((request) => request.status === 'NEW' || request.status === 'REPORT_RECEIVED').length} person(s) have notified officials that no safe escape route is available.</span></div><button onClick={() => navigate('/government/control-room/unsafe-routes')} type="button">Open response view <ArrowRight size={14} /></button></section>}
 
-        {assistanceRequests.filter((request) => request.report).map((request) => <section className="cr-situation-report" key={request.id}><div className="cr-situation-report__heading"><div><p>INCOMING SITUATION REPORT</p><h2>{request.hazard}</h2><span>{request.location} · {new Date(request.report.submittedAt).toLocaleString('en-IN')}</span></div><span className="cr-situation-report__status">REPORT RECEIVED</span></div>{request.report.text && <p className="cr-situation-report__text">{request.report.text}</p>}<div className="cr-situation-report__media">{request.report.image && <figure><img alt="Reported situation" src={request.report.image.data} /><figcaption>{request.report.image.name}</figcaption></figure>}{request.report.audio && <div><span>Audio evidence</span><audio controls src={request.report.audio.data}>Your browser cannot play this audio.</audio></div>}</div></section>)}
+        {assistanceRequests.filter((request) => request.report).map((request) => <section className="cr-situation-report" key={request.id}><div className="cr-situation-report__heading"><div><p>INCOMING SITUATION REPORT</p><h2>{request.hazard}</h2><span>{request.location} · {new Date(request.report.submittedAt).toLocaleString('en-IN')}</span></div><span className="cr-situation-report__status">{request.status.replaceAll('_', ' ')}</span></div>{request.report.text && <p className="cr-situation-report__text">{request.report.text}</p>}<div className="cr-situation-report__media">{request.report.image && <figure><img alt="Reported situation" src={request.report.image.data} /><figcaption>{request.report.image.name}</figcaption></figure>}{request.report.audio && <div><span>Audio evidence</span><audio controls src={request.report.audio.data}>Your browser cannot play this audio.</audio></div>}{request.report.video && <div><span>Video evidence</span><video controls src={request.report.video.data}>Your browser cannot play this video.</video></div>}</div><div className="cr-situation-report__actions"><button onClick={() => setPriorityRequestId((currentId) => currentId === request.id ? null : request.id)} type="button"><Siren size={14} /> Send help to this area</button>{priorityRequestId === request.id && <div className="cr-situation-report__priority"><span>Select response priority</span>{['HIGH', 'MEDIUM', 'LOW'].map((priority) => <button className={`cr-situation-report__priority-button cr-situation-report__priority-button--${priority.toLowerCase()}`} key={priority} onClick={() => handleDispatchHelp(request, priority)} type="button">{priority} PRIORITY</button>)}</div>}</div></section>)}
 
         {role === 'district' && <section className="cr-role-dashboard__section cr-district-requests"><div className="cr-role-dashboard__section-heading"><div><p>DISTRICT OPERATIONS INBOX</p><h2>Supply requests from field officers</h2></div><span>{districtSupplyRequests.filter((request) => request.status === 'REQUESTED').length} pending</span></div>{districtSupplyRequests.length === 0 ? <p className="empty-state">No supply requests have been submitted.</p> : <div className="cr-district-requests__list">{districtSupplyRequests.map((request) => <article key={`${request.centreId}-${request.time}`}><div><span className={`cr-request-status cr-request-status--${request.status.toLowerCase()}`}>{request.status}</span><h3>{request.quantity} {request.item}</h3><p>{request.centreName} · {request.location}{request.note ? ` · ${request.note}` : ''}</p><small>{new Date(request.time).toLocaleString('en-IN')}</small></div>{request.status === 'REQUESTED' && <div className="cr-district-requests__actions"><button onClick={() => handleSupplyRequestStatus(request, 'FULFILLED')} type="button"><CheckCircle2 size={14} /> Fulfill</button><button onClick={() => handleSupplyRequestStatus(request, 'DECLINED')} type="button"><XCircle size={14} /> Decline</button></div>}</article>)}</div>}</section>}
 

@@ -112,7 +112,7 @@ export default function Communication() {
       <main className="crs-main">
         <header className="crs-main__header">
           <div>
-            <p className="lcc-eyebrow">SAFESETU · CONTROL ROOM</p>
+            <p className="lcc-eyebrow">SAHAS · CONTROL ROOM</p>
             <h1>EMERGENCY COMMUNICATION</h1>
           </div>
         </header>

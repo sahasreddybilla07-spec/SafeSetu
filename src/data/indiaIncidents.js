@@ -64,6 +64,47 @@ export const shelters = [
   { id: 'mumbai-relief', name: 'Mumbai Emergency Centre', position: [19.124, 72.913], capacity: '5,000', status: 'AVAILABLE', incidentId: 'mumbai-rainfall' },
 ];
 
+const stateSafeAreaCentres = [
+  ['Andaman and Nicobar', 11.67, 92.74], ['Andhra Pradesh', 16.51, 80.64], ['Arunachal Pradesh', 27.1, 93.62],
+  ['Assam', 26.14, 91.74], ['Bihar', 25.61, 85.14], ['Chandigarh', 30.74, 76.79], ['Chhattisgarh', 21.25, 81.63],
+  ['Dadra and Nagar Haveli', 20.27, 73.02], ['Daman and Diu', 20.42, 72.83], ['Delhi', 28.61, 77.21], ['Goa', 15.49, 73.83],
+  ['Gujarat', 23.02, 72.57], ['Haryana', 29.06, 76.09], ['Himachal Pradesh', 31.10, 77.17], ['Jammu and Kashmir', 34.08, 74.80],
+  ['Jharkhand', 23.34, 85.31], ['Karnataka', 12.97, 77.59], ['Kerala', 8.52, 76.94], ['Lakshadweep', 10.57, 72.64],
+  ['Madhya Pradesh', 23.26, 77.41], ['Maharashtra', 19.08, 72.88], ['Manipur', 24.82, 93.94], ['Meghalaya', 25.58, 91.89],
+  ['Mizoram', 23.73, 92.72], ['Nagaland', 25.67, 94.11], ['Odisha', 20.30, 85.82], ['Puducherry', 11.94, 79.81],
+  ['Punjab', 30.90, 75.86], ['Rajasthan', 26.91, 75.79], ['Sikkim', 27.33, 88.61], ['Tamil Nadu', 13.08, 80.27],
+  ['Telangana', 17.39, 78.49], ['Tripura', 23.83, 91.28], ['Uttar Pradesh', 26.85, 80.95], ['Uttarakhand', 30.32, 78.03],
+  ['West Bengal', 22.57, 88.36],
+];
+
+function stateSeed(state) {
+  return [...state].reduce((seed, character) => ((seed * 31) + character.charCodeAt(0)) % 997, 17);
+}
+
+function seededValue(seed) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453;
+  return value - Math.floor(value);
+}
+
+export const allSafeAreas = stateSafeAreaCentres.flatMap(([state, latitude, longitude]) => {
+  const seed = stateSeed(state);
+  const count = 2 + Math.floor(seededValue(seed) * 4);
+
+  return Array.from({ length: count }, (_, index) => {
+    const latitudeOffset = (seededValue(seed + index * 19) - 0.5) * 0.72;
+    const longitudeOffset = (seededValue(seed + index * 37 + 11) - 0.5) * 0.9;
+
+    return {
+      id: `safe-centre-${state.toLowerCase().replaceAll(' ', '-')}-${index + 1}`,
+      name: `${state} Safe Centre ${index + 1}`,
+      state,
+      position: [latitude + latitudeOffset, longitude + longitudeOffset],
+      capacity: 'State coordination centre',
+      status: 'AVAILABLE',
+    };
+  });
+});
+
 export const severityRank = { CRITICAL: 0, HIGH: 1, MODERATE: 2, LOW: 3 };
 
 export function hazardGlyph(hazard) {

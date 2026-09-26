@@ -1,4 +1,12 @@
-﻿const defaultDemoState = {
+﻿import { incidents } from './indiaIncidents';
+
+const canonicalIncidentByDemoId = {
+  'odisha-cyclone-demo': 'odisha-cyclone',
+  'assam-flood-demo': 'assam-flood',
+  'uttarakhand-landslide-demo': 'uttarakhand-landslide',
+};
+
+const defaultDemoState = {
   activeHazardId: 'odisha-cyclone-demo',
   hazards: [
     {
@@ -988,14 +996,17 @@ function normalizeArea(area = {}) {
 }
 
 function sanitizeHazardData(hazard = {}) {
+  const canonicalIncident = incidents.find((incident) => incident.id === canonicalIncidentByDemoId[hazard.id]);
   const relocationAreas = Array.isArray(hazard.relocationAreas)
     ? hazard.relocationAreas.map((area) => normalizeArea(area))
     : [];
 
   return {
     ...hazard,
-    peopleAtRisk: Number(hazard.peopleAtRisk ?? 0),
-    hazardRadius: Number(hazard.hazardRadius ?? 0),
+    peopleAtRisk: canonicalIncident ? Number(canonicalIncident.populationAtRisk.replaceAll(',', '')) : Number(hazard.peopleAtRisk ?? 0),
+    hazardCenter: canonicalIncident?.center ?? hazard.hazardCenter,
+    hazardRadius: canonicalIncident?.zoneRadius ?? Number(hazard.hazardRadius ?? 0),
+    severity: canonicalIncident?.severity ?? hazard.severity,
     relocationAreas,
     alerts: Array.isArray(hazard.alerts) ? hazard.alerts : [],
     auditTrail: Array.isArray(hazard.auditTrail) ? hazard.auditTrail : [],

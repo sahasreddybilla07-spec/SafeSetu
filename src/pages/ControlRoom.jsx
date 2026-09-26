@@ -1,4 +1,6 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import HazardRipple from '../map/HazardRipple';
+import SafeAreaDots from '../map/SafeAreaDots';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowRight,
@@ -199,7 +201,7 @@ export default function ControlRoom() {
         <div className="control-room-sidebar__brand">
           <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
           <div>
-            <strong>SAFESETU</strong>
+            <strong>SAHAS</strong>
             <small>CONTROL ROOM</small>
           </div>
         </div>
@@ -242,7 +244,7 @@ export default function ControlRoom() {
       <main className="control-room-main">
         <header className="control-room-header">
           <div>
-            <p className="control-room-eyebrow">SAFESETU</p>
+            <p className="control-room-eyebrow">SAHAS</p>
             <h1>NATIONAL DISASTER CONTROL ROOM</h1>
           </div>
           <div className="control-room-header__status">
@@ -623,6 +625,7 @@ export default function ControlRoom() {
                     pathOptions={{ color: '#d9485f', fillColor: '#d9485f', fillOpacity: 0.22, weight: 2 }}
                     radius={activeHazard.hazardRadius}
                   />
+                  <HazardRipple center={activeHazard.hazardCenter} color="#d9485f" radius={activeHazard.hazardRadius} />
 
                   <Marker icon={hazardMarkerIcon} position={activeHazard.hazardCenter}>
                     <Popup>
@@ -655,6 +658,7 @@ export default function ControlRoom() {
                       </CircleMarker>
                     );
                   })}
+                                  <SafeAreaDots areas={activeHazard.relocationAreas.filter((area) => area.approvalStatus === 'APPROVED')} />
                 </MapContainer>
 
                 <div className="control-room-map__legend">

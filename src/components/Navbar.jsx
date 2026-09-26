@@ -20,7 +20,7 @@ export default function Navbar() {
       <header className="navbar admin-navbar">
         <Link className="navbar__brand" to="/">
           <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
-          <span>SAFESETU</span>
+          <span>SAHAS</span>
         </Link>
         <nav aria-label="Admin navigation" className="admin-navbar__links">
           {adminLinks.map(({ label, to, end }) => (
@@ -51,7 +51,7 @@ export default function Navbar() {
     <header className="navbar public-navbar">
       <Link className="navbar__brand" to="/">
         <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
-        <span>SAFESETU</span>
+        <span>SAHAS</span>
       </Link>
       <nav aria-label="Primary navigation" className="navbar__links">
         {publicLinks.map((link) => (
@@ -75,7 +75,7 @@ export default function Navbar() {
         <div className="public-info-backdrop" onClick={() => setPublicDialog(null)} role="presentation">
           <section aria-labelledby="public-info-title" className="public-info-dialog" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
             <button aria-label="Close information panel" className="public-info-dialog__close" onClick={() => setPublicDialog(null)} type="button"><X size={18} /></button>
-            {publicDialog === 'about' ? <><p>About SafeSetu</p><h2 id="public-info-title">Safety intelligence for stronger communities</h2><span>SafeSetu brings illustrative hazard awareness, preparedness information and approved safe-area guidance into one easy-to-use public platform.</span></> : <><p>Contact SafeSetu</p><h2 id="public-info-title">Need support or more information?</h2><span>For emergencies, call <strong>112</strong>. For this illustrative platform, contact your local disaster-management authority or district control room.</span></>}
+            {publicDialog === 'about' ? <><p>About SAHAS</p><h2 id="public-info-title">Safety intelligence for stronger communities</h2><span>SAHAS brings illustrative hazard awareness, preparedness information and approved safe-area guidance into one easy-to-use public platform.</span></> : <><p>Contact SAHAS</p><h2 id="public-info-title">Need support or more information?</h2><span>For emergencies, call <strong>112</strong>. For this illustrative platform, contact your local disaster-management authority or district control room.</span></>}
           </section>
         </div>
       )}

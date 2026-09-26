@@ -33,6 +33,8 @@ import {
   requestWaterSupply,
 } from '../data/centreOperations';
 import { emojiFor, levelFor } from '../utils/statusLevels';
+import HazardRipple from '../map/HazardRipple';
+import SafeAreaDots from '../map/SafeAreaDots';
 
 const safeAreaMarkerIcon = L.divIcon({
   className: 'safe-area-map-marker-wrapper',
@@ -318,6 +320,8 @@ export default function ControlRoomLocationMap() {
                 pathOptions={{ color: '#1f9d63', fillColor: '#44c486', fillOpacity: 0.12, weight: 2 }}
                 radius={600}
               />
+              <HazardRipple center={safeArea.position} color="#20a66a" radius={600} />
+              <SafeAreaDots areas={[safeArea]} />
               <Marker icon={safeAreaMarkerIcon} position={safeArea.position}>
                 <Popup>
                   <strong>{safeArea.name}</strong>

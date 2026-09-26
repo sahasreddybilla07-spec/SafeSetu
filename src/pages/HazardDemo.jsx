@@ -15,23 +15,20 @@ import {
   Waves,
 } from 'lucide-react';
 import L from 'leaflet';
-import { Circle, CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
+import { Circle, MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet';
 import { Link, useNavigate } from 'react-router-dom';
 import { hazardDemoData, hazardDemoPrecautions } from '../data/hazardDemo';
 import { createEmergencyAssistanceRequest } from '../data/emergencyAssistance';
+import HazardRipple from '../map/HazardRipple';
+import RoadRoute from '../map/RoadRoute';
+import SafeAreaDots from '../map/SafeAreaDots';
+import UserLocationMarker from '../map/UserLocationMarker';
 
 const hazardMarkerIcon = L.divIcon({
   className: 'hazard-demo-marker-wrapper',
   html: '<div class="hazard-demo-marker">⚠</div>',
   iconSize: [34, 34],
   iconAnchor: [17, 17],
-});
-
-const userMarkerIcon = L.divIcon({
-  className: 'hazard-demo-marker-wrapper',
-  html: '<div class="hazard-demo-user-marker">●</div>',
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
 });
 
 const shelterMarkerIcon = L.divIcon({
@@ -230,7 +227,7 @@ export default function HazardDemo() {
       <header className="hazard-demo-header">
         <Link className="hazard-demo-header__brand" to="/">
           <img alt="" aria-hidden="true" className="navbar__mark" src="/safesetu-crest.png" />
-          <span><strong>SAFESETU</strong></span>
+          <span><strong>SAHAS</strong></span>
         </Link>
         <div className="hazard-demo-header__actions">
           <span className="hazard-demo-header__tag">DEMO SCENARIO • ILLUSTRATIVE DATA</span>
@@ -298,11 +295,7 @@ export default function HazardDemo() {
                   radius={hazardDemoData.hazardRadius}
                 />
 
-                <Circle
-                  center={hazardDemoData.hazardCenter}
-                  pathOptions={{ color: '#ff9f43', fillColor: '#ff9f43', fillOpacity: 0.12, weight: 1.5 }}
-                  radius={hazardDemoData.hazardRadius * 0.65}
-                />
+                <HazardRipple center={hazardDemoData.hazardCenter} color="#d9485f" radius={hazardDemoData.hazardRadius} />
 
                 <Marker icon={hazardMarkerIcon} position={hazardDemoData.hazardCenter}>
                   <Popup>
@@ -312,40 +305,12 @@ export default function HazardDemo() {
                   </Popup>
                 </Marker>
 
-                <Marker icon={userMarkerIcon} position={hazardDemoData.userLocation.position}>
-                  <Popup>
-                    <strong>{hazardDemoData.userLocation.label}</strong>
-                    <br />
-                    Demo user location
-                  </Popup>
-                </Marker>
+                <UserLocationMarker label={hazardDemoData.userLocation.label} position={hazardDemoData.userLocation.position} />
 
-                {displayedRelocationAreas.map((area) => (
-                  <CircleMarker
-                    center={area.position}
-                    eventHandlers={{ click: () => setSelectedAreaId(area.id) }}
-                    key={area.id}
-                    pathOptions={{
-                      color: noEscapeDemo ? '#d9485f' : selectedAreaId === area.id ? '#1d8f5f' : '#0d6bc0',
-                      fillColor: '#ffffff',
-                      fillOpacity: 1,
-                      weight: selectedAreaId === area.id ? 4 : 2,
-                    }}
-                    radius={selectedAreaId === area.id ? 10 : 8}
-                  >
-                    <Popup>
-                      <strong>{area.name}</strong>
-                      <br />
-                      {area.routeStatus}
-                    </Popup>
-                  </CircleMarker>
-                ))}
+                <SafeAreaDots areas={displayedRelocationAreas} onSelect={setSelectedAreaId} />
 
                 {selectedArea && (
-                  <Polyline
-                    pathOptions={{ color: noEscapeDemo ? '#d9485f' : '#1d67c6', dashArray: '10 8', weight: 4, opacity: 0.9 }}
-                    positions={[hazardDemoData.userLocation.position, selectedArea.position]}
-                  />
+                  <RoadRoute color={noEscapeDemo ? '#d9485f' : '#159a62'} end={selectedArea.position} start={hazardDemoData.userLocation.position} />
                 )}
               </MapContainer>
 

@@ -39,7 +39,7 @@ function ShelterOption({ shelter }) {
         {shelter.vulnerabilitySupport && <div><dt>Vulnerable Support</dt><dd className="safe-text">{shelter.vulnerabilitySupport}</dd></div>}
       </dl>
       <div className="shelter-option__status"><strong>{shelter.status}</strong>{shelter.reason && <span>{shelter.reason}</span>}</div>
-      <p className="shelter-option__label">{shelter.recommended ? 'RECOMMENDED BY SAFESETU' : shelter.status === 'INSUFFICIENT CAPACITY' ? 'NOT RECOMMENDED' : 'ALTERNATE SHELTER'}</p>
+      <p className="shelter-option__label">{shelter.recommended ? 'RECOMMENDED BY SAHAS' : shelter.status === 'INSUFFICIENT CAPACITY' ? 'NOT RECOMMENDED' : 'ALTERNATE SHELTER'}</p>
     </article>
   );
 }
@@ -81,7 +81,7 @@ function RelocationDrawer({ scenario, onClose, onShowRoute }) {
           <div className="capacity-panel__footer"><span>Remaining: <strong>{capacity.remaining.toLocaleString()}</strong></span><strong>SUFFICIENT</strong></div>
         </section>
         <section className="decision-summary">
-          <p>SAFESETU RECOMMENDATION</p>
+          <p>SAHAS RECOMMENDATION</p>
           <div><strong>{relocation.selectedHabitation}</strong><span>↓</span><strong>{relocation.recommendedShelter}</strong></div>
           <dl><div><dt>Population assigned</dt><dd>{relocation.requiredPopulation}</dd></div><div><dt>Capacity</dt><dd>{capacity.total.toLocaleString()}</dd></div><div><dt>Remaining capacity</dt><dd>{capacity.remaining.toLocaleString()}</dd></div></dl>
           <span><ShieldCheck size={15} /> RELOCATION FEASIBLE</span>
@@ -112,7 +112,7 @@ function WhatIfPanel({ scenario, selectedLevel, onSelect }) {
         <div className="what-if-selected__status"><span>Status</span><strong>{projection.status}</strong></div>
       </div>
       {selectedLevel === 'severe' && <p className="what-if-warning"><AlertTriangle size={15} /> ADDITIONAL SHELTER CAPACITY REQUIRED</p>}
-      <div className="what-if-insight"><strong>SAFESETU INSIGHT</strong><p>{projection.insight}</p></div>
+      <div className="what-if-insight"><strong>SAHAS INSIGHT</strong><p>{projection.insight}</p></div>
       <div className="what-if-comparison" aria-label="Scenario comparison"><div className="what-if-comparison__header"><span />{levels.map((level) => <strong key={level}>{level}</strong>)}</div><div><span>Population Risk</span>{levels.map((level) => <strong key={level}>{scenario.whatIf[level].populationAtRisk}</strong>)}</div><div><span>Risk Level</span>{levels.map((level) => <strong className={`what-if-comparison__${scenario.whatIf[level].riskTone}`} key={level}>{scenario.whatIf[level].riskLevel}</strong>)}</div><div><span>Shelter Need</span>{levels.map((level) => <strong key={level}>{scenario.whatIf[level].shelterNeed}</strong>)}</div></div>
     </section>
   );

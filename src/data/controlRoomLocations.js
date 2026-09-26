@@ -2,7 +2,9 @@
 // Location Command Centre page. `hazardId` maps 1:1 to the hazard records
 // in governmentDemo.js so that relocation-centre counts stay live and
 // clicking through to the command centre lands on the correct hazard.
-export const controlRoomLocations = [
+import { incidents } from './indiaIncidents';
+
+const controlRoomLocationsSource = [
   {
     hazardId: 'odisha-cyclone-demo',
     location: 'Puri, Odisha',
@@ -145,6 +147,28 @@ export const controlRoomLocations = [
     ],
   },
 ];
+
+const canonicalIncidentByDemoId = {
+  'odisha-cyclone-demo': 'odisha-cyclone',
+  'assam-flood-demo': 'assam-flood',
+  'uttarakhand-landslide-demo': 'uttarakhand-landslide',
+};
+
+export const controlRoomLocations = controlRoomLocationsSource.map((location) => {
+  const incident = incidents.find((item) => item.id === canonicalIncidentByDemoId[location.hazardId]);
+  if (!incident) return location;
+
+  return {
+    ...location,
+    location: incident.location,
+    state: incident.region,
+    hazardType: incident.hazard,
+    severity: incident.severity,
+    peopleAtRisk: Number(incident.populationAtRisk.replaceAll(',', '')),
+    hazardRadiusKm: incident.zoneRadius / 1000,
+    center: incident.center,
+  };
+});
 
 export function getControlRoomLocation(hazardId) {
   return controlRoomLocations.find((location) => location.hazardId === hazardId) ?? null;

@@ -662,6 +662,35 @@ body:has(.crs-layout) .language-selector {
 .scenario-card--warning .scenario-card__severity { color: #a3610f; background: #fdefe1; }
 
 .hazard-marker-wrapper { background: transparent; border: none; }
+
+.user-location-marker-wrapper { border: 0; background: transparent; }
+.user-location-marker { position: relative; width: 2.15rem; height: 2.6rem; }
+.user-location-marker::before { position: absolute; top: 0; left: .32rem; width: 1.5rem; height: 1.5rem; border: 3px solid #ffffff; border-radius: 50% 50% 50% 0; background: #1267ca; box-shadow: 0 3px 8px rgba(4, 49, 91, .35); content: ''; transform: rotate(-45deg); }
+.user-location-marker span { position: absolute; top: .47rem; left: .79rem; z-index: 1; width: .56rem; height: .56rem; border-radius: 50%; background: #ffffff; }
+
+.hazard-ripple {
+  animation: hazard-ripple-expand 3.6s ease-out infinite;
+  pointer-events: none;
+}
+
+.hazard-ripple--1 { animation-delay: 1.2s; }
+.hazard-ripple--2 { animation-delay: 2.4s; }
+
+.safe-area-dot { filter: drop-shadow(0 0 3px rgba(0, 92, 58, 0.9)); }
+
+@keyframes hazard-ripple-expand {
+  0%, 100% { opacity: 0.05; }
+  12% { opacity: 0.82; }
+  72% { opacity: 0.28; }
+}
+
+.state-hazard-overlay { animation: state-hazard-pulse 3s ease-in-out infinite; }
+
+@keyframes state-hazard-pulse {
+  0%, 100% { fill-opacity: 0.2; }
+  50% { fill-opacity: 0.38; }
+}
+
 .hazard-marker {
   display: grid;
   width: 28px;
@@ -2188,6 +2217,7 @@ body:has(.crs-layout) .language-selector {
 .emergency-map-legend__dot { display: inline-block; width: 0.7rem; height: 0.7rem; border-radius: 50%; }
 .emergency-map-legend__dot--red { background: #c63737; }
 .emergency-map-legend__dot--blue { background: #155ca3; }
+.emergency-map-legend__dot--green { background: #159a62; }
 .emergency-map-legend__dot--shelter { background: #ffffff; border: 2px solid #155ca3; }
 
 .emergency-flow { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
@@ -3640,8 +3670,10 @@ body:has(.crs-layout) .language-selector {
 
 .situation-report-audio { position: relative; display: flex; align-items: center; gap: .65rem; min-height: 4rem; padding: .65rem .75rem; border: 1px dashed #8ebed7; border-radius: .55rem; color: #1266a1; background: #f4fbff; }.situation-report-audio--recording { border-color: #d9485f; color: #a51f3e; background: #fff1f3; }.situation-report-audio__record { display: grid; width: 2.35rem; height: 2.35rem; padding: 0; place-items: center; border: 0; border-radius: 50%; color: #fff; background: #1267ca; cursor: pointer; }.situation-report-audio--recording .situation-report-audio__record { background: #c63754; }.situation-report-audio span { display: grid; gap: .2rem; }.situation-report-audio strong { font-size: .78rem; }.situation-report-audio small { color: #58738a; font-size: .7rem; }.situation-report-audio__choose { margin-left: auto; padding: .35rem .5rem; border: 1px solid #b9d8e8; border-radius: .35rem; color: #1266a1; background: #fff; cursor: pointer; font-size: .7rem; font-weight: 700; }.situation-report-audio__choose input { display: none; }
 .situation-report-photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }.situation-report-photo-actions .situation-report-upload { width: 100%; font: inherit; text-align: left; }.situation-report-camera { display: grid; gap: .7rem; padding: .75rem; border: 1px solid #9ccce8; border-radius: .6rem; background: #eaf7fd; }.situation-report-camera video { display: block; width: 100%; max-height: 22rem; border-radius: .45rem; background: #12344f; object-fit: contain; }.situation-report-camera > div { display: flex; justify-content: flex-end; gap: .5rem; }
-.situation-report-preview { padding: .7rem; border: 1px solid #b9d8e8; border-radius: .55rem; background: #f4fbff; }.situation-report-preview > div { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; color: #315d7b; font-size: .75rem; }.situation-report-preview button { display: grid; padding: .25rem; border: 0; color: #a51f3e; background: transparent; cursor: pointer; }.situation-report-preview img { display: block; width: min(100%, 22rem); max-height: 13rem; object-fit: cover; border-radius: .4rem; }.situation-report-preview--audio audio { width: 100%; }
-.cr-situation-report { margin: 1rem 0; padding: 1rem; border: 1px solid #abd3e5; border-left: 4px solid #1267ca; border-radius: .7rem; background: rgba(255,255,255,.9); box-shadow: 0 10px 20px rgba(19,72,111,.06); }.cr-situation-report__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }.cr-situation-report__heading p { margin: 0; color: #1477b0; font-size: .7rem; font-weight: 800; letter-spacing: .08em; }.cr-situation-report__heading h2 { margin: .25rem 0; color: #183f5d; font-size: 1rem; }.cr-situation-report__heading span:not(.cr-situation-report__status) { color: #5d7893; font-size: .75rem; }.cr-situation-report__status { padding: .3rem .5rem; border-radius: 999px; color: #176e56; background: #e5f7ef; font-size: .65rem; font-weight: 800; white-space: nowrap; }.cr-situation-report__text { color: #365c75; line-height: 1.5; }.cr-situation-report__media { display: flex; flex-wrap: wrap; gap: 1rem; }.cr-situation-report__media figure { margin: 0; }.cr-situation-report__media img { display: block; width: 12rem; max-height: 8rem; object-fit: cover; border-radius: .45rem; }.cr-situation-report__media figcaption, .cr-situation-report__media > div > span { display: block; margin-top: .3rem; color: #58738a; font-size: .7rem; }.cr-situation-report__media audio { width: min(22rem, 100%); margin-top: .4rem; }
+.situation-report-preview { padding: .7rem; border: 1px solid #b9d8e8; border-radius: .55rem; background: #f4fbff; }.situation-report-preview > div { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; color: #315d7b; font-size: .75rem; }.situation-report-preview button { display: grid; padding: .25rem; border: 0; color: #a51f3e; background: transparent; cursor: pointer; }.situation-report-preview img { display: block; width: min(100%, 22rem); max-height: 13rem; object-fit: cover; border-radius: .4rem; }.situation-report-preview video { display: block; width: min(100%, 28rem); max-height: 18rem; border-radius: .4rem; background: #12344f; }.situation-report-preview--audio audio { width: 100%; }
+.cr-situation-report { margin: 1rem 0; padding: 1rem; border: 1px solid #abd3e5; border-left: 4px solid #1267ca; border-radius: .7rem; background: rgba(255,255,255,.9); box-shadow: 0 10px 20px rgba(19,72,111,.06); }.cr-situation-report__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }.cr-situation-report__heading p { margin: 0; color: #1477b0; font-size: .7rem; font-weight: 800; letter-spacing: .08em; }.cr-situation-report__heading h2 { margin: .25rem 0; color: #183f5d; font-size: 1rem; }.cr-situation-report__heading span:not(.cr-situation-report__status) { color: #5d7893; font-size: .75rem; }.cr-situation-report__status { padding: .3rem .5rem; border-radius: 999px; color: #176e56; background: #e5f7ef; font-size: .65rem; font-weight: 800; white-space: nowrap; }.cr-situation-report__text { color: #365c75; line-height: 1.5; }.cr-situation-report__media { display: flex; flex-wrap: wrap; gap: 1rem; }.cr-situation-report__media figure { margin: 0; }.cr-situation-report__media img { display: block; width: 12rem; max-height: 8rem; object-fit: cover; border-radius: .45rem; }.cr-situation-report__media figcaption, .cr-situation-report__media > div > span { display: block; margin-top: .3rem; color: #58738a; font-size: .7rem; }.cr-situation-report__media audio { width: min(22rem, 100%); margin-top: .4rem; }.cr-situation-report__media video { display: block; width: min(28rem, 100%); max-height: 18rem; margin-top: .4rem; border-radius: .45rem; background: #12344f; }.cr-situation-report__remove { display: inline-flex; align-items: center; gap: .25rem; margin-left: .5rem; padding: .2rem .35rem; border: 1px solid #e7b2bb; border-radius: .3rem; color: #a51f3e; background: #fff; cursor: pointer; font-size: .65rem; font-weight: 700; }.cr-situation-report__actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }.cr-situation-report__actions button { display: inline-flex; align-items: center; gap: .35rem; padding: .55rem .7rem; border: 1px solid #9ccce8; border-radius: .4rem; color: #1266a1; background: #f5fbff; cursor: pointer; font-size: .7rem; font-weight: 800; }.cr-situation-report__actions button:hover, .cr-situation-report__remove:hover { background: #eaf5fb; }
+
+.cr-situation-report__priority { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; width: 100%; padding: .65rem; border: 1px solid #b9d8e8; border-radius: .45rem; background: #f4fbff; }.cr-situation-report__priority span { width: 100%; color: #315d7b; font-size: .7rem; font-weight: 800; }.cr-situation-report__priority-button { border-radius: .35rem !important; }.cr-situation-report__priority-button--high { color: #a51f3e !important; border-color: #e7b2bb !important; background: #fff1f3 !important; }.cr-situation-report__priority-button--medium { color: #9a5a08 !important; border-color: #edc77d !important; background: #fff8e7 !important; }.cr-situation-report__priority-button--low { color: #176e56 !important; border-color: #a9d9c3 !important; background: #effaf4 !important; }
 
 @keyframes emergency-action-pulse {
   50% { box-shadow: 0 0 0 8px rgba(225, 29, 72, 0.12), 0 12px 24px rgba(136, 19, 55, 0.35); }

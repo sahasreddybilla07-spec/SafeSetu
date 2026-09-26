@@ -48,7 +48,7 @@ export default function ControlRoomSidebar({ active, role: roleProp }) {
       <div className="crs-sidebar__brand">
         <img alt="" aria-hidden="true" className="crs-sidebar__mark" src="/safesetu-crest.png" />
         <div>
-          <strong>SAFESETU</strong>
+          <strong>SAHAS</strong>
           <span>CONTROL ROOM</span>
         </div>
       </div>

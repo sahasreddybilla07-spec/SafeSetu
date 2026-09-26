@@ -89,10 +89,10 @@ export default function Login() {
 
   return (
     <main className="login-page">
-      <section className="login-page__branding" aria-label="SAFESETU platform identity">
-        <Link className="login-brand" to="/" aria-label="Return to SAFESETU public map">
-          <img alt="SAFESETU logo" className="login-brand__mark" src="/safesetu-crest.png" />
-          <span>SAFESETU</span>
+      <section className="login-page__branding" aria-label="SAHAS platform identity">
+        <Link className="login-brand" to="/" aria-label="Return to SAHAS public map">
+          <img alt="SAHAS logo" className="login-brand__mark" src="/safesetu-crest.png" />
+          <span>SAHAS</span>
         </Link>
         <div className="login-page__identity">
           <p>{t('National Disaster Management')}</p>

@@ -99,7 +99,7 @@ export default function OfficerAssignment() {
       <main className="crs-main">
         <header className="crs-main__header">
           <div>
-            <p className="lcc-eyebrow">SAFESETU · CONTROL ROOM</p>
+            <p className="lcc-eyebrow">SAHAS · CONTROL ROOM</p>
             <h1>FIELD OFFICER ASSIGNMENT</h1>
           </div>
           <label className="oa-location-select">

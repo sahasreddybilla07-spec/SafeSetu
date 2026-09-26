@@ -40,3 +40,15 @@ export function saveSituationReport(report) {
   writeRequests(next);
   return report;
 }
+
+export function dispatchEmergencyHelp(assistanceId, priority) {
+  const requests = readRequests();
+  const next = requests.map((request) => {
+    if (request.id !== assistanceId) return request;
+    const { report, ...requestHistory } = request;
+    return { ...requestHistory, status: 'HELP_DISPATCHED', priority, helpDispatched: true, helpDispatchedAt: new Date().toISOString() };
+  });
+  writeRequests(next);
+  return next.find((request) => request.id === assistanceId) ?? null;
+}
+
